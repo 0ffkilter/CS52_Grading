@@ -29,7 +29,7 @@ def grade_print(assign_num, folder_directory, start_with=""):
     file_name += str(assign_num) + ".sml"
 
     for (name, email, dname) in names:
-        print_file(os.path.join(assign_dir, dname, file_name), file_name)
+        print_file(os.path.join(assign_dir, dname, file_name))
 
 def grade_assign(assign_num, folder_directory, hide_email, start_with):
     """
