@@ -32,14 +32,14 @@ def grade_print(assign_num, folder_directory, start_with=""):
     for (name, email, dname) in names:
         print_file(os.path.join(assign_dir, dname, file_name), file_name)
 
-def grade_assign(assign_num, folder_directory, start_with, start_next):
+def grade_assign(assign_num, folder_directory, s_with, s_next):
     """
     Grade an assignment
 
     assign_num:         number of assignment (integer)
     folder_directory:   directory that assignment FOLDER is located in (where the submission folder is)
-    start_with:         partial or complete username to start grading at
-    start_next:         partial or complete username to start grading after
+    s_with:         partial or complete username to start grading at
+    s_next:         partial or complete username to start grading after
 
     Return val: none
     """
@@ -56,13 +56,13 @@ def grade_assign(assign_num, folder_directory, start_with, start_next):
     target_name += str(assign_num) + '-ready'
 
     #get list of files
-    files = extract_files(assign_dir, SUFFIX, file_name, target_name)
+    miss_list, files = extract_files(assign_dir, SUFFIX, file_name, target_name)
 
     #Trim list of files if starting not at the beginning
     if start_next != "":
-        files = start_next(start_next, files, 1)
+        files = start_next(s_next, files, 1)
     elif start_early != "":
-        files = start_early(start_early, files)
+        files = start_early(s_with, files)
 
 
     #Parse grading script name
@@ -71,6 +71,9 @@ def grade_assign(assign_num, folder_directory, start_with, start_next):
 
     #Get directory of grading_scripts
     grading_path = os.path.join(os.getcwd(), grading_name)
+
+    if len(miss_list) != 0:
+        raw_input("Enter to continue")
 
     for (name, f_name) in files:
 

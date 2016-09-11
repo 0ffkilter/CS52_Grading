@@ -88,7 +88,7 @@ def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
 
     Return Value:   a list of files in (name, filename) format
     """
-
+    miss_list = []
     ret_list = []
 
     #Create target dir if it doesn't exist
@@ -99,6 +99,7 @@ def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
         possibleFiles = glob.glob(src_dir + "/" + anyCase(userid) + dir_sfx + "/" + f_name)
         if len (possibleFiles) == 0 :
             sys.stdout.write("Missing: " + name  + ", " + userid + "\n")
+            miss_list.append(name + '-' + f_name)
         elif 1 < len (possibleFiles) :
             sys.stdout.write("Multiple matches: " + name  + ", " + userid + "\n")
         else :
@@ -107,7 +108,7 @@ def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
             shutil.copy (sourcePath, destinationPath)
             ret_list.append((name, (name + '-' + f_name)))
 
-    return ret_list
+    return (miss_list,ret_list)
 
 def parse_folder(folder_directory, assign_num):
     """
