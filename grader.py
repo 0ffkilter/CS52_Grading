@@ -14,15 +14,28 @@ from grader_utils import open_file
 from grader_utils import input_string
 
 def grade_assign(assign_num, folder_directory, hide_email, start_with):
+    """
+    Grade an assignment
+    assign_num:         number of assignment (integer)
+    folder_directory:   directory that assignment FOLDER is located in (where the submission folder is)
+    hide_email:         option, currently does nothing
+    start_with:         partial or complete username to start grading at
+
+    Return val: none
+    """
+
 
     #Find assign folder
     assign_name = "asgt" + "0" if assign_num < 10 else ""
     assign_name += str(assign_num) + "-submissions"
     assign_dir = os.path.join(folder_directory, assign_name)
+
     #Parse filenames in the tograde.txt
     assigns = read_tograde(assign_dir)
+    #Filter out names if truncating early
     names = start_early(start_with, sorted([parse_filename(a) for a in assigns]))
 
+    #Standardize file name of assignment submission
     file_name = "asgt" + "0" if assign_num < 10 else ""
     file_name += str(assign_num) + ".sml"
 
@@ -30,12 +43,26 @@ def grade_assign(assign_num, folder_directory, hide_email, start_with):
     grading_name = "grading_scripts/asgt" + "0" if assign_num < 10 else ""
     grading_name += str(assign_num) + "_grading.sml"
 
+    #Get directory of grading_scripts
     grading_path = os.path.join(os.getcwd(), grading_name)
 
     for (name, email, dname) in names:
+
+        #Print Name
         print("Name : " + name + "\n")
+
+        #Run the file through the script
         run_file(os.path.join(assign_dir, dname, file_name), grading_path)
+
+        #Get options after running file
         inp = input(input_string)
+
+        """
+        c: continue (also just pressing enter works)
+        r: rerun file (assumed that it's been edited)
+        o: open file for editing in Nano
+        e: exit
+        """
         if inp != "c" and inp != "C" and inp != "":
             if inp == "r" or inp == "R":
                 run_file(os.path.join(assign_dir, dname, file_name), grading_path)
