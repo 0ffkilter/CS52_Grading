@@ -13,9 +13,10 @@ Because knowing the answer doesn't help you get there.  Also the tests are based
 
  1. Clone or download repo (Cloning recommended, grader is still being worked on)
  2. Download submission zip from submit.cs.pomona.edu
- 3. Extract into cs52_grading/ 
- 4. CD into cs52_grading/
- 5. Start grading with python3 ./grader.py --assign N
+ 3. Download grading script from Sakai
+ 4. Extract into cs52_grading/ 
+ 5. CD into cs52_grading/
+ 6. Start grading with python3 ./grader.py --assign N
     - N is assignment number
     
     
