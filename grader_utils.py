@@ -1,8 +1,17 @@
 import os, subprocess
 from threading import Timer
+from student_list import STUDENT_LIST
+import shutil
+import glob
+import sys
 
-input_string = "c to continue, r to rerun, o to open file (in Nano), e to exit \n"
-timeout = 15
+INPUT_STRING = "c to continue, r to rerun, o to open file (in Nano), e to exit \n"
+
+TIMEOUT = 15
+
+PRINTER_NAME = 'Edmunds_229'
+
+SUFFIX = '-latest'
 
 def run_file(student, grading):
     """
@@ -20,7 +29,7 @@ def run_file(student, grading):
 
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     kill_proc = lambda p: p.kill()
-    timer = Timer(timeout, kill_proc, [proc])
+    timer = Timer(TIMEOUT, kill_proc, [proc])
 
     try:
         print("starting file")
@@ -34,13 +43,71 @@ def run_file(student, grading):
     return result
 
 def print_file(file_name, asgt_name):
+    """
+    Prints a file
+
+    file_name:          name of file to print
+    asgt_name:          Title of file
+
+    Return Value: none
+    """
     try:
-        cmd = r'lpr %s -T %s -p -P %s' %(file_name, asgt_name, 'Edmunds_229')
+        cmd = r'lpr %s -T %s -p -P %s' %(file_name, asgt_name, PRINTER_NAME)
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         result = proc.communicate()[0].decode("utf-8").splitlines()
     except:
         print('lpr error')
         return;
+
+def anyCase(st) :
+    """ Written by Everett Bull
+    Return a globbing string, capitalization does not matter
+
+    st:     string to glob
+
+    Return Value: globbed String
+    """
+
+    result = ""
+    for c in st :
+        if c.isalpha() :
+            result = result + '[' + c.lower() + c.upper() + ']'
+        else :
+            result = result + c
+    return result
+
+def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
+    """ Written by Everett Bull
+    Extracts files from submission download folder into new folder
+
+    src_dir:        Source directory of asgtN_submissions
+    dir_sfx:        suffix for file names (-latest, -ontime)
+    f_name:         file name to look for
+    tgt_dir:        target dir where the files are going
+    sdt_list:       list of students in (name, userid) format
+
+    Return Value:   a list of files in (name, filename) format
+    """
+
+    ret_list = []
+
+    #Create target dir if it doesn't exist
+    if not os.path.exists(tgt_dir):
+        os.makedirs(tgt_dir)
+
+    for (name, userid) in sdt_list :
+        possibleFiles = glob.glob(src_dir + "/" + anyCase(userid) + dir_sfx + "/" + f_name)
+        if len (possibleFiles) == 0 :
+            sys.stdout.write("Missing: " + name  + ", " + userid + "\n")
+        elif 1 < len (possibleFiles) :
+            sys.stdout.write("Multiple matches: " + name  + ", " + userid + "\n")
+        else :
+            sourcePath = possibleFiles[0]
+            destinationPath = tgt_dir + "/" + name + "-" + f_name
+            shutil.copy (sourcePath, destinationPath)
+            ret_list.append((name, (name + '-' + f_name)))
+
+    return ret_list
 
 def parse_folder(folder_directory, assign_num):
     """
@@ -58,6 +125,7 @@ def parse_folder(folder_directory, assign_num):
     return assign_dir
 
 
+#Deprecated
 def read_tograde(a_dir):
     """
     Reads the tograde.txt file
@@ -70,6 +138,7 @@ def read_tograde(a_dir):
     f = open(os.path.join(a_dir, "tograde.txt"), "r")
     return f.read().splitlines();
 
+#Deprecated
 def parse_filename(filename):
     """
     Parses the filenames to get id and email out
@@ -86,6 +155,17 @@ def parse_filename(filename):
     name = filename[filename.find("Z")+2:]
     idx = name.find("@")
     return (name[:idx] + late_txt, name[idx:], filename)
+
+def start_next(start_with, lst, n=1):
+    """
+    Start at the nth assignment past string containing start_with
+
+    start_with:     String to compare against
+    lst:            list of filenames
+    n:              nth element
+    """
+
+    return start_early(start_with, lst)[n:]
 
 def start_early(start_with, lst):
     """

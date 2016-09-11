@@ -7,6 +7,7 @@ import os.path as path
 import argparse
 from argparse import RawTextHelpFormatter
 from grader_utils import *
+from student_list import STUDENT_LIST
 
 def grade_print(assign_num, folder_directory, start_with=""):
     """
@@ -31,28 +32,38 @@ def grade_print(assign_num, folder_directory, start_with=""):
     for (name, email, dname) in names:
         print_file(os.path.join(assign_dir, dname, file_name), file_name)
 
-def grade_assign(assign_num, folder_directory, hide_email, start_with):
+def grade_assign(assign_num, folder_directory, start_with, start_next):
     """
     Grade an assignment
 
     assign_num:         number of assignment (integer)
     folder_directory:   directory that assignment FOLDER is located in (where the submission folder is)
-    hide_email:         option, currently does nothing
     start_with:         partial or complete username to start grading at
+    start_next:         partial or complete username to start grading after
 
     Return val: none
     """
 
     assign_dir = parse_folder(folder_directory, assign_num)
 
-    #Parse filenames in the tograde.txt
-    assigns = read_tograde(assign_dir)
-    #Filter out names if truncating early
-    names = start_early(start_with, sorted([parse_filename(a) for a in assigns]))
 
     #Standardize file name of assignment submission
     file_name = "asgt" + "0" if assign_num < 10 else ""
     file_name += str(assign_num) + ".sml"
+
+    #Target directory name
+    target_name = "asgt" + "0" if assign_num < 10 else ""
+    target_name += str(assign_num) + '-ready'
+
+    #get list of files
+    files = extract_files(assign_dir, SUFFIX, file_name, target_name)
+
+    #Trim list of files if starting not at the beginning
+    if start_next != "":
+        files = start_next(start_next, files, 1)
+    elif start_early != "":
+        files = start_early(start_early, files)
+
 
     #Parse grading script name
     grading_name = "grading_scripts/asgt" + "0" if assign_num < 10 else ""
@@ -61,16 +72,17 @@ def grade_assign(assign_num, folder_directory, hide_email, start_with):
     #Get directory of grading_scripts
     grading_path = os.path.join(os.getcwd(), grading_name)
 
-    for (name, email, dname) in names:
+    for (name, f_name) in files:
 
         #Print Name
         print("Name : " + name + "\n")
 
         #Run the file through the script
-        run_file(os.path.join(assign_dir, dname, file_name), grading_path)
+        run_file(os.path.join(target_name, f_name), grading_path)
 
+        print("Name : " + name + " finished\n")
         #Get options after running file
-        inp = raw_input(input_string)
+        inp = raw_input(INPUT_STRING)
 
         """
         c: continue (also just pressing enter works)
@@ -80,14 +92,14 @@ def grade_assign(assign_num, folder_directory, hide_email, start_with):
         """
         if inp != "c" and inp != "C" and inp != "":
             if inp == "r" or inp == "R":
-                run_file(os.path.join(assign_dir, dname, file_name), grading_path)
-                inp = raw_input(input_string)
+                run_file(os.path.join(target_name, f_name), grading_path)
+                print("Name : " + name + " finished\n")
+                inp = raw_input(INPUT_STRING)
             elif inp == "o" or inp == "O":
                 open_file(os.path.join(assign_dir, dname, file_name))
-                inp = raw_input(input_string)
+                inp = raw_input(INPUT_STRING)
             else:
                 sys.exit(0)
-
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
@@ -131,6 +143,12 @@ def main():
             Print flag.  Overrides other actions
             """)
 
+    parser.add_argument('--start-next', action='store', dest='start_next', default='', type=str, help=
+            """
+            Start the assignment AFTER the one containing the string given.  Can be partial name
+            """)
+
+
     res = parser.parse_args()
     print(res.start_with)
     if res.assign_num < 0:
@@ -140,7 +158,7 @@ def main():
     if (res.p):
         grade_print(res.assign_num, res.assign_dir, res.start_with)
     else:
-        grade_assign(res.assign_num, res.assign_dir, res.email_silent, res.start_with)
+        grade_assign(res.assign_num, res.assign_dir, res.start_with, res.start_next)
 
 if __name__ == "__main__":
     main()
