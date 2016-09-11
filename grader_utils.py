@@ -34,7 +34,7 @@ def run_file(student, grading):
     return result
 
 def print_file(file_name, asgt_name):
-    cmd = r'lpr %s -T %s -p -P %s' %(file_name, asgt_name, 'Edmunds_227')
+    cmd = r'lpr %s -T %s -p -P %s' %(file_name, asgt_name, 'Edmunds_229')
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 
 def parse_folder(folder_directory, assign_num):
