@@ -6,16 +6,35 @@ import os
 import os.path as path
 import argparse
 from argparse import RawTextHelpFormatter
-from grader_utils import read_tograde
-from grader_utils import start_early
-from grader_utils import parse_filename
-from grader_utils import run_file
-from grader_utils import open_file
-from grader_utils import input_string
+from grader_utils import *
+
+def grade_print(assign_num, folder_directory, start_with=""):
+    """
+    Print an assignment
+
+    assign_num:         number of assignment (integer)
+    folder_directory:   directory that assignment FOLDER is located in (where the submission folder is)
+    start_with:         partial or complete username to start grading at
+    """
+
+    assign_dir = parse_folder(folder_directory, assign_num)
+
+    #Parse filenames in the tograde.txt
+    assigns = read_tograde(assign_dir)
+    #Filter out names if truncating early
+    names = start_early(start_with, sorted([parse_filename(a) for a in assigns]))
+
+    #Standardize file name of assignment submission
+    file_name = "asgt" + "0" if assign_num < 10 else ""
+    file_name += str(assign_num) + ".sml"
+
+    for (name, email, dname) in names:
+        print_file(os.path.join(assign_dir, dname, file_name), file_name)
 
 def grade_assign(assign_num, folder_directory, hide_email, start_with):
     """
     Grade an assignment
+
     assign_num:         number of assignment (integer)
     folder_directory:   directory that assignment FOLDER is located in (where the submission folder is)
     hide_email:         option, currently does nothing
@@ -24,11 +43,7 @@ def grade_assign(assign_num, folder_directory, hide_email, start_with):
     Return val: none
     """
 
-
-    #Find assign folder
-    assign_name = "asgt" + "0" if assign_num < 10 else ""
-    assign_name += str(assign_num) + "-submissions"
-    assign_dir = os.path.join(folder_directory, assign_name)
+    assign_dir = parse_folder(folder_directory, assign_num)
 
     #Parse filenames in the tograde.txt
     assigns = read_tograde(assign_dir)
@@ -111,13 +126,21 @@ def main():
             Which name to start with (can be partial string)
             """)
 
+    parser.add_argument('-p', action='store_true', help =
+            """
+            Print flag.  Overrides other actions
+            """)
 
     res = parser.parse_args()
     print(res.start_with)
     if res.assign_num < 0:
         print("assign number required with --assign")
         sys.exit(0)
-    grade_assign(res.assign_num, res.assign_dir, res.email_silent, res.start_with)
+
+    if (res.p):
+        grade_print(res.assign_num, res.assign_dir, res.start_with)
+    else:
+        grade_assign(res.assign_num, res.assign_dir, res.email_silent, res.start_with)
 
 if __name__ == "__main__":
     main()
