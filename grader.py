@@ -70,7 +70,7 @@ def grade_assign(assign_num, folder_directory, hide_email, start_with):
         run_file(os.path.join(assign_dir, dname, file_name), grading_path)
 
         #Get options after running file
-        inp = input(input_string)
+        inp = raw_input(input_string)
 
         """
         c: continue (also just pressing enter works)
@@ -81,10 +81,10 @@ def grade_assign(assign_num, folder_directory, hide_email, start_with):
         if inp != "c" and inp != "C" and inp != "":
             if inp == "r" or inp == "R":
                 run_file(os.path.join(assign_dir, dname, file_name), grading_path)
-                inp = input(input_string)
+                inp = raw_input(input_string)
             elif inp == "o" or inp == "O":
                 open_file(os.path.join(assign_dir, dname, file_name))
-                inp = input(input_string)
+                inp = raw_input(input_string)
             else:
                 sys.exit(0)
 
