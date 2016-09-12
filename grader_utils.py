@@ -77,11 +77,12 @@ def print_file(file_name, asgt_name):
     Return Value: none
     """
     try:
-        cmd = r'lpr %s -T %s -p -P %s' %(file_name, asgt_name, PRINTER_NAME)
+
+        cmd = r'lpr %s -T %s -P %s -o cpi=14 -o lpi=8 -o sides=two-sided-long-edge -o page-left=72 -o page-right=72 -o prettyprint' %(file_name, asgt_name, PRINTER_NAME)
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         result = proc.communicate()[0].decode("utf-8").splitlines()
     except:
-        print('lpr error')
+        print('lpr error \n')
         return;
 
 def anyCase(st) :
