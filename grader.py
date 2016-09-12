@@ -9,7 +9,7 @@ from argparse import RawTextHelpFormatter
 from grader_utils import *
 from student_list import STUDENT_LIST
 
-def grade_print(assign_num, folder_directory, start_with=""):
+def grade_print(assign_num, folder_directory, s_with, s_next):
     """
     Print an assignment
 
@@ -42,7 +42,7 @@ def grade_print(assign_num, folder_directory, start_with=""):
         raw_input("Enter to continue")
 
     for (name, f_name) in files:
-       print_file(os.path.join(assign_dir, dname, file_name), file_name)
+       print_file(os.path.join(target_name, f__name), file_name)
 
 def grade_assign(assign_num, folder_directory, s_with, s_next):
     """
@@ -188,7 +188,7 @@ def main():
         sys.exit(0)
 
     if (res.p):
-        grade_print(res.assign_num, res.assign_dir, res.start_with)
+        grade_print(res.assign_num, res.assign_dir, res.start_with, res.start_next)
     else:
         grade_assign(res.assign_num, res.assign_dir, res.start_with, res.start_next)
 

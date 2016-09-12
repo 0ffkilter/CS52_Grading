@@ -116,10 +116,11 @@ def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
     """
     miss_list = []
     ret_list = []
-
+    created = True
     #Create target dir if it doesn't exist
     if not os.path.exists(tgt_dir):
         os.makedirs(tgt_dir)
+        created = False
 
     for (name, userid) in sdt_list :
         possibleFiles = glob.glob(src_dir + "/" + anyCase(userid) + dir_sfx + "/" + f_name)
@@ -131,10 +132,12 @@ def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
         else :
             sourcePath = possibleFiles[0]
             destinationPath = tgt_dir + "/" + name + "-" + f_name
-            shutil.copy (sourcePath, destinationPath)
             ret_list.append((name, (name + '-' + f_name)))
+            if not created:
+                shutil.copy (sourcePath, destinationPath)
 
     return (miss_list,ret_list)
+
 
 def parse_folder(folder_directory, assign_num):
     """
