@@ -2,9 +2,11 @@
 
 Because knowing the answer doesn't help you get there.  Also the tests are based on the assignment.  No tricks here!
 
+Written by Matthew Gee, with formating and parsing help from scripts written by Everett Bull
+
 ##Requirements:
 
- - Python 3.5
+ - Python 2.7
  - SML
   - Note: SML must be in path for this to work
  
@@ -14,9 +16,10 @@ Because knowing the answer doesn't help you get there.  Also the tests are based
  1. Clone or download repo (Cloning recommended, grader is still being worked on)
  2. Download submission zip from submit.cs.pomona.edu
  3. Download grading script from Sakai
- 4. Extract into cs52_grading/ 
- 5. CD into cs52_grading/
- 6. Start grading with python3 ./grader.py --assign N
+ 4. Extract submission zip into cs52_grading/
+ 5. Move grading script into cs52_grading/grading_scripts
+ 6. CD into cs52_grading/
+ 7. Start grading with python ./grader.py --assign N
     - N is assignment number
     
     
@@ -27,9 +30,12 @@ Because knowing the answer doesn't help you get there.  Also the tests are based
 
  --assign-dir 
      In case the submission folder is in a different directory.  If nothing is inputted, the grader assumes the folder is in the cs52_grading/ directory
-    
- --hide-email
-     Currently does nothing
      
-  --start-with
-     Start with an assignment that isn't first alphabetical (arranged by dci usernames)  Can be a partial string, does not need to be the whole dci username (just the first few letters are sufficient)
+ --start-with
+     Start with an assignment that isn't first alphabetical (arranged by last name)
+     
+ --start-next
+     Start the assignment after the one specified by this argument.  Uses same parsing as --start-with.  --Start-with has priority over this open.
+     
+ -p 
+    flag that tells it to print, specified by printer in grader_utils.py (Default is Edmunds 229 printer)
