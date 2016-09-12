@@ -15,8 +15,8 @@ Written by Matthew Gee, with formating and parsing help from scripts written by 
 
  1. Clone or download repo (Cloning recommended, grader is still being worked on)
  2. Download submission zip from submit.cs.pomona.edu
- 3. Download grading script from Sakai
- 4. Extract submission zip into cs52_grading/
+ 3. Download grading script from Sakai and student_list.py from Sakai
+ 4. Extract submission zip into cs52_grading/; put student_list into CS52_grading/ as well
  5. Move grading script into cs52_grading/grading_scripts
  6. CD into cs52_grading/
  7. Start grading with python ./grader.py --assign N
