@@ -24,12 +24,11 @@ Written by Matthew Gee, with formating and parsing help from scripts written by 
 #Usage:
  1. Python2 --assign N
  2. After file is run:
- 
-   'c'/enter: continue
-   'r': rerun file
-   'o': open in nano
-   'e': exit
-   't': run with longer timeout (60 seconds instead of 5)
+   - 'c'/enter: continue
+   - 'r': rerun file
+   - 'o': open in nano
+   - 'e': exit
+   - 't': run with longer timeout (60 seconds instead of 5)
     
     
 ##Command Line Arguments
