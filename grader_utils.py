@@ -4,16 +4,32 @@ from student_list import STUDENT_LIST
 import shutil
 import glob
 import sys
+import threading
+import thread
+import multiprocessing
 
 INPUT_STRING = "c to continue, r to rerun, o to open file (in Nano), e to exit \n"
 
-TIMEOUT = 15
+TIMEOUT = 5
 
 PRINTER_NAME = 'Edmunds_229'
 
 SUFFIX = '-latest'
 
-def run_file(student, grading):
+def run_sml(cmd, queue):
+    """
+    Run an sml command and pipe the output back into the queue
+
+    cmd:            the command to run
+    queue:          the queue to send information back to
+    """
+
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    while (proc.returncode == None):
+        queue.put(proc.stdout.readline())
+        proc.poll()
+
+def run_file(student, grading, timeout=TIMEOUT):
     """
     Run a file through the grading script
     Runs shell command 'cat pregrade.sml asgtN.sml grading_script.sml | sml'
@@ -21,26 +37,35 @@ def run_file(student, grading):
     student:        File to run
     grading:        Grading script to compare against
 
-    Return Value: output of sml command
+    Return Value: (output, timeout) - timeout=True if process was terminated
     """
+
+    #Get the abs path of the pregrade sml file
     pregrade = os.path.join(os.getcwd(), "pregrade.sml")
+
+    #old command, does the same
     #cmd = r'echo "use \"%s\"; use \"%s\"; use \"%s\";" | sml -Cprint.depth=100, -Cprint.length=1000' %(pregrade, student, grading)
     cmd = r'cat %s %s %s | sml' %(pregrade, student, grading)
 
-    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-    kill_proc = lambda p: p.kill()
-    timer = Timer(TIMEOUT, kill_proc, [proc])
+    #set up multiprocessing queue for data retrieval
+    queue = multiprocessing.Queue()
 
-    try:
-        print("starting file")
-        timer.start()
-        result = proc.communicate()[0].decode("utf-8").splitlines()
-    finally:
-        timer.cancel()
+    #start separate process and timeout after certain number of seconds
+    p = multiprocessing.Process(target=run_sml, args=(cmd, queue))
+    p.start()
+    p.join(timeout)
 
-    for r in result:
-        print(r);
-    return result
+    #kill process and return results depending on if the process timed out or not
+    term = False
+    if(p.is_alive()):
+        term = True;
+        p.terminate()
+        p.join()
+    result = ""
+    while not queue.empty():
+        result += queue.get()
+
+    return(result, term)
 
 def print_file(file_name, asgt_name):
     """
@@ -178,6 +203,7 @@ def start_early(start_with, lst):
     Return Value:   Modified list of filenames
     """
 
+    print("start with: " + start_with)
     if start_with == "":
         return lst
     idx = 0

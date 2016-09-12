@@ -20,17 +20,29 @@ def grade_print(assign_num, folder_directory, start_with=""):
 
     assign_dir = parse_folder(folder_directory, assign_num)
 
-    #Parse filenames in the tograde.txt
-    assigns = read_tograde(assign_dir)
-    #Filter out names if truncating early
-    names = start_early(start_with, sorted([parse_filename(a) for a in assigns]))
 
     #Standardize file name of assignment submission
     file_name = "asgt" + "0" if assign_num < 10 else ""
     file_name += str(assign_num) + ".sml"
 
-    for (name, email, dname) in names:
-        print_file(os.path.join(assign_dir, dname, file_name), file_name)
+    #Target directory name
+    target_name = "asgt" + "0" if assign_num < 10 else ""
+    target_name += str(assign_num) + '-ready'
+
+    #get list of files
+    miss_list, files = extract_files(assign_dir, SUFFIX, file_name, target_name)
+
+    #Trim list of files if starting not at the beginning
+    if s_next != "":
+        files = start_next(s_next, files, 1)
+    elif s_with != "":
+        files = start_early(s_with, files)
+
+    if len(miss_list) != 0:
+        raw_input("Enter to continue")
+
+    for (name, f_name) in files:
+       print_file(os.path.join(assign_dir, dname, file_name), file_name)
 
 def grade_assign(assign_num, folder_directory, s_with, s_next):
     """
@@ -59,9 +71,9 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
     miss_list, files = extract_files(assign_dir, SUFFIX, file_name, target_name)
 
     #Trim list of files if starting not at the beginning
-    if start_next != "":
+    if s_next != "":
         files = start_next(s_next, files, 1)
-    elif start_early != "":
+    elif s_with != "":
         files = start_early(s_with, files)
 
 
@@ -81,23 +93,40 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
         print("Name : " + name + "\n")
 
         #Run the file through the script
-        run_file(os.path.join(target_name, f_name), grading_path)
+        result, term = run_file(os.path.join(target_name, f_name), grading_path)
+
+        print(result)
+        if term:
+            print("Terminated early, timeout limit reached")
+
 
         print("Name : " + name + " finished\n")
         #Get options after running file
-        inp = raw_input(INPUT_STRING)
+        inp = raw_input(INPUT_STRING + "t: run with longer timeout (60 seconds)" if term else "")
 
         """
         c: continue (also just pressing enter works)
         r: rerun file (assumed that it's been edited)
         o: open file for editing in Nano
         e: exit
+        t: run without timeout (potentially dangerous)
         """
-        if inp != "c" and inp != "C" and inp != "":
+        while inp != "c" and inp != "C" and inp != "":
             if inp == "r" or inp == "R":
-                run_file(os.path.join(target_name, f_name), grading_path)
+                result, term = run_file(os.path.join(target_name, f_name), grading_path)
+                print(result)
+                if term:
+                    print("Terminated early, timeout limit reached")
+                print("Name : " + name + " finished\n")
+                inp = raw_input(INPUT_STRING + "t: run with longer timeout (60 seconds)" if term else "")
+            elif inp == "t" or inp == "T":
+                result, term = run_file(os.path.join(target_name, f_name), grading_path, 60)
+                print(result)
+                if term:
+                    print("Terminated early, timeout limit reached")
                 print("Name : " + name + " finished\n")
                 inp = raw_input(INPUT_STRING)
+
             elif inp == "o" or inp == "O":
                 open_file(os.path.join(assign_dir, dname, file_name))
                 inp = raw_input(INPUT_STRING)
