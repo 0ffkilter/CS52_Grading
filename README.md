@@ -10,22 +10,30 @@ Written by Matthew Gee, with formating and parsing help from scripts written by 
  - SML
   - Note: SML must be in path for this to work
  
- 
-#Usage:
+#Installation
+ 1. Clone (Recommended) or Download repo
+ 2. Download student_list.py from Sakai
+ 3. Move student_list.py into CS52_grading/
 
- 1. Clone or download repo (Cloning recommended, grader is still being worked on)
- 2. Download submission zip from submit.cs.pomona.edu
- 3. Download grading script from Sakai and student_list.py from Sakai
- 4. Extract submission zip into cs52_grading/; put student_list into CS52_grading/ as well
- 5. Move grading script into cs52_grading/grading_scripts
- 6. CD into cs52_grading/
- 7. Start grading with python ./grader.py --assign N
-    - N is assignment number
+#Pre Grading
+ 1. Download Submission zip from submit.cs.pomona.edu
+ 2. Download grading scripts from Sakai
+ 3. Move grading scripts into CS52_grading/grading_scripts
+ 4. Move Submission zip into CS52_grading/
+
+#Usage:
+ 1. Python2 --assign N
+ 2. After file is run:
+   'c'/enter: continue
+   'r': rerun file
+   'o': open in nano
+   'e': exit
+   't': run with longer timeout (60 seconds instead of 5)
     
     
 ##Command Line Arguments
 
- --assign-number N
+ --assign N
      The assign number.  MANDATORY
 
  --assign-dir 
