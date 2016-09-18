@@ -42,7 +42,7 @@ def grade_print(assign_num, folder_directory, s_with, s_next):
         raw_input("Enter to continue")
 
     for (name, f_name) in files:
-       print_file(os.path.join(target_name, f__name), file_name)
+       print_file(os.path.join(target_name, f_name), file_name)
 
 def grade_assign(assign_num, folder_directory, s_with, s_next):
     """
