@@ -29,7 +29,7 @@ def run_sml(cmd, queue):
         queue.put(proc.stdout.readline())
         proc.poll()
 
-def run_file(student, grading, timeout=TIMEOUT):
+def run_file(student, grading_pre, grading, timeout=TIMEOUT):
     """
     Run a file through the grading script
     Runs shell command 'cat pregrade.sml asgtN.sml grading_script.sml | sml'
@@ -41,11 +41,11 @@ def run_file(student, grading, timeout=TIMEOUT):
     """
 
     #Get the abs path of the pregrade sml file
-    pregrade = os.path.join(os.getcwd(), "pregrade.sml")
+    pregrade = os.path.join(os.getcwd(), "grading_scripts", "pregrade.sml")
 
     #old command, does the same
     #cmd = r'echo "use \"%s\"; use \"%s\"; use \"%s\";" | sml -Cprint.depth=100, -Cprint.length=1000' %(pregrade, student, grading)
-    cmd = r'cat %s %s %s | sml' %(pregrade, student, grading)
+    cmd = r'cat %s %s %s %s | sml' %(pregrade, student, grading_pre, grading)
 
     #set up multiprocessing queue for data retrieval
     queue = multiprocessing.Queue()

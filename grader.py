@@ -58,16 +58,16 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
 
     assign_dir = parse_folder(folder_directory, assign_num)
 
+    assign_name = "asgt" + "0" if assign_num < 10 else ""
+    assign_name += str(assign_num)
 
     #Standardize file name of assignment submission
-    file_name = "asgt" + "0" if assign_num < 10 else ""
-    file_name += str(assign_num) + ".sml"
+    file_name = assign_name + ".sml"
 
     #Target directory name
-    target_name = "asgt" + "0" if assign_num < 10 else ""
-    target_name += str(assign_num) + '-ready'
+    target_name = assign_name + '-ready'
 
-    #get list of files
+    #get list of student files
     miss_list, files = extract_files(assign_dir, SUFFIX, file_name, target_name)
 
     #Trim list of files if starting not at the beginning
@@ -76,13 +76,12 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
     elif s_with != "":
         files = start_early(s_with, files)
 
+    grading_list_file = open(os.path.join(os.getcwd(), "grading_scripts", assign_name, (assign_name + "_lst.txt")), 'r')
+    grading_files = grading_list_file.read().split("\n")
 
-    #Parse grading script name
-    grading_name = "grading_scripts/asgt" + "0" if assign_num < 10 else ""
-    grading_name += str(assign_num) + "_grading.sml"
-
-    #Get directory of grading_scripts
-    grading_path = os.path.join(os.getcwd(), grading_name)
+    grading_files = [os.path.join(os.getcwd(), "grading_scripts", assign_name, f) for f in grading_files]
+    grading_pre = grading_files[0]
+    grading_scripts = grading_files[1:]
 
     if len(miss_list) != 0:
         raw_input("Enter to continue")
@@ -92,17 +91,22 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
         #Print Name
         print("Name : " + name + "\n")
 
-        #Run the file through the script
-        result, term = run_file(os.path.join(target_name, f_name), grading_path)
+        # #Run the file through the script
+        results = [run_file(os.path.join(target_name, f_name), grading_pre, f_script) for f_script in grading_scripts]
 
-        print(result)
-        if term:
-            print("Terminated early, timeout limit reached")
+        print(results)
+        return
+
+        # result, term = run_file(os.path.join(target_name, f_name), grading_path)
+
+        # print(result)
+        # if term:
+        #     print("Terminated early, timeout limit reached")
 
 
-        print("Name : " + name + " finished\n")
-        #Get options after running file
-        inp = raw_input(INPUT_STRING + "t: run with longer timeout (60 seconds)" if term else "")
+        # print("Name : " + name + " finished\n")
+        # #Get options after running file
+        # inp = raw_input(INPUT_STRING + "t: run with longer timeout (60 seconds)" if term else "")
 
         """
         c: continue (also just pressing enter works)
