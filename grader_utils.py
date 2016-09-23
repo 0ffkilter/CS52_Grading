@@ -7,6 +7,7 @@ import sys
 import threading
 import thread
 import multiprocessing
+import re
 
 INPUT_STRING = "c to continue, r to rerun, o to open file (in Nano), e to exit \n"
 
@@ -42,9 +43,11 @@ def run_file(student, grading_pre, grading, timeout=TIMEOUT):
 
     #Get the abs path of the pregrade sml file
     pregrade = os.path.join(os.getcwd(), "grading_scripts", "pregrade.sml")
-
+    if os.path.isdir(grading):
+        return
     #old command, does the same
     #cmd = r'echo "use \"%s\"; use \"%s\"; use \"%s\";" | sml -Cprint.depth=100, -Cprint.length=1000' %(pregrade, student, grading)
+    print(pregrade, student, grading_pre, grading)
     cmd = r'cat %s %s %s %s | sml' %(pregrade, student, grading_pre, grading)
 
     #set up multiprocessing queue for data retrieval
@@ -167,6 +170,15 @@ def read_tograde(a_dir):
 
     f = open(os.path.join(a_dir, "tograde.txt"), "r")
     return f.read().splitlines();
+
+def parse_result(result, start_txt="--START--", end_txt="--END--"):
+    pat = start_txt + "(.*)" + end_txt
+    res = re.findall(pat, result, re.DOTALL)
+    if len(res) == 0:
+        res = re.findall(start_txt + "(.*)", result, re.DOTALL)
+        if len(res) == 0:
+            return "Program did not compile correctly"
+    return res[0]
 
 #Deprecated
 def parse_filename(filename):

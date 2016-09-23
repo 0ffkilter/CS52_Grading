@@ -76,10 +76,11 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
     elif s_with != "":
         files = start_early(s_with, files)
 
-    grading_list_file = open(os.path.join(os.getcwd(), "grading_scripts", assign_name, (assign_name + "_lst.txt")), 'r')
+    grading_list_file = open(os.path.join(os.getcwd(), "grading_scripts", assign_name, (assign_name + "_lst.txt")), 'rU')
     grading_files = grading_list_file.read().split("\n")
 
     grading_files = [os.path.join(os.getcwd(), "grading_scripts", assign_name, f) for f in grading_files]
+    print(grading_files)
     grading_pre = grading_files[0]
     grading_scripts = grading_files[1:]
 
@@ -93,8 +94,14 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
 
         # #Run the file through the script
         results = [run_file(os.path.join(target_name, f_name), grading_pre, f_script) for f_script in grading_scripts]
+        try:
+            for (r,t) in results:
+                print(parse_result(r))
 
-        print(results)
+        except:
+            pass
+
+
         return
 
         # result, term = run_file(os.path.join(target_name, f_name), grading_path)
