@@ -9,13 +9,20 @@ import thread
 import multiprocessing
 import re
 
+#input string for user input after running file
 INPUT_STRING = "c to continue, r to rerun, o to open file (in Nano), e to exit \n"
 
-TIMEOUT = 5
+#timeout (in secs) to run each command for before force quitting
+TIMEOUT = 3
 
+#where to print to
 PRINTER_NAME = 'Edmunds_229'
 
+#either -latest or -ontime
 SUFFIX = '-latest'
+
+#how many lines to print when it errors
+TRACEBACK_LENGTH = 6
 
 def run_sml(cmd, queue):
     """
@@ -47,7 +54,6 @@ def run_file(student, grading_pre, grading, timeout=TIMEOUT):
         return
     #old command, does the same
     #cmd = r'echo "use \"%s\"; use \"%s\"; use \"%s\";" | sml -Cprint.depth=100, -Cprint.length=1000' %(pregrade, student, grading)
-    print(pregrade, student, grading_pre, grading)
     cmd = r'cat %s %s %s %s | sml' %(pregrade, student, grading_pre, grading)
 
     #set up multiprocessing queue for data retrieval
@@ -177,7 +183,7 @@ def parse_result(result, start_txt="--START--", end_txt="--END--"):
     if len(res) == 0:
         res = re.findall(start_txt + "(.*)", result, re.DOTALL)
         if len(res) == 0:
-            return "Program did not compile correctly"
+            return "ERR"
     return res[0]
 
 #Deprecated
