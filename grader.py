@@ -97,7 +97,9 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
         try:
             for (r,t) in results:
                 print(parse_result(r))
-
+                if (t):
+                    print ("Test timed out")
+                    print("")
         except:
             pass
 
