@@ -155,10 +155,10 @@ def parse_pre_line(line):
     """
 
     opts = line.split(" ")
-    if len(opts) != 3
+    if len(opts) != 3:
         return ("", "", "")
     name = opts[0]
-    
+
     opt_a = opts[1]
     #either style points or points for the problem
     opt_b = opts[2]
@@ -171,8 +171,8 @@ def deduct_points(points, total, passed, failed, halted):
     returns a number of points to deduct based on the test results
 
     0.5 points are deducted if at least one test fails.
-    all points are deducted if all tests fail.  
-    for each additional test failed, another half a point is deducted.  
+    all points are deducted if all tests fail.
+    for each additional test failed, another half a point is deducted.
     all points cannot be deducted if at least one test is passed.
 
     total:      total number of tests
@@ -200,7 +200,7 @@ def deduct_points(points, total, passed, failed, halted):
 def format_check(f_name) :
     """
     Return number of lines that are incorrectly formatted
-    
+
     file:               list of lines in file
     """
 
@@ -216,7 +216,7 @@ def format_check(f_name) :
         if 0 <= line.find ("\t") :
            contains_tab += 1
 
-    return (too_long, contains_tab)
+    return (too_long, contains_tab, linecount)
 
 
 def parse_folder(folder_directory, assign_num):
