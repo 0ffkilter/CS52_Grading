@@ -158,22 +158,69 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, single_file = "")
         print("Name : " + name + "\n")
 
         # #Run the file through the script
-        results = [run_file(os.path.join(target_name, f_name), grading_pre, f_script) for f_script in grading_scripts]
-        any_timeout = False
-        try:
-            for (r,t) in results:
-                res = parse_result(r)
+        passed = 0
+        failed = 0
+        halt = 0
+        total_deduction = 0
 
-                if res ==  "ERR":
-                    print("Error reached")
-                    print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
-                else:
-                    print(res)
-                if (t):
-                    print("Test timed out\n")
-                    any_timeout = True
-        except:
-            pass
+        (too_long, tabs, total) = format_check(f_name)
+
+        for (f_script, points, tests) in grading_scripts:
+            (r, t) = run_file(os.path.join(os.getcwd(), f_name), grading_pre, f_script)
+
+            res = parse_result(r)
+
+            if res ==  "ERR":
+                print("Error reached")
+                print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
+            else:
+                print(res)
+            if (t):
+                print("Test timed out\n")
+                any_timeout = True
+
+            c_pass = res.count(" PASS")
+            c_fail = res.count(" FAIL")
+            c_halt = int(tests) - c_pass - c_fail
+
+            passed += c_pass
+            failed += c_fail
+            halt += c_halt
+
+            points = float(points)
+            tests = int(tests)
+
+            c_deduction = deduct_points(points, tests, c_pass, c_fail, c_halt)
+
+            total_deduction += c_deduction
+
+            if c_deduction > 0:
+                print(str(c_deduction) + " points taken off on previous problem")
+
+
+        print("\n\n====Summary====")
+        print("Pass:  " + str(passed))
+        print("Fail:  " + str(failed))
+        print("Halt:  " + str(halt))
+        print("Total: " + str(passed + failed + halt) + "\n")
+
+        style_deduction = 0
+        if too_long > 0:
+            style_deduction += 0.5
+        if tabs > 0:
+            style_deduction += 0.5
+
+        print("# too long lines: " + str(too_long))
+        print("# lines w/ tabs: " + str(tabs) + "\n")
+
+
+        style_points = int(style_points)
+
+        print("Style: " + str(style_points - style_deduction) + "/" + str(style_points) + "\n")
+
+        print("Total deduction: " + str(total_deduction) + "\n")
+
+        print("Suggested score: " + str(int(total_points) - total_deduction - style_deduction) + "/" + str(total_points))
 
         # result, term = run_file(os.path.join(target_name, f_name), grading_path)
 
