@@ -1,0 +1,3 @@
+[submodule "grading_scripts"]
+	path = grading_scripts
+	url = https://github.com/0ffkilter/grading_scripts
