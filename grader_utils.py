@@ -112,7 +112,7 @@ def anyCase(st) :
     return result
 
 def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
-    """ Written by Everett Bull
+    """ 
     Extracts files from submission download folder into new folder
 
     src_dir:        Source directory of asgtN_submissions
@@ -122,6 +122,8 @@ def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
     sdt_list:       list of students in (name, userid) format
 
     Return Value:   a list of files in (name, filename) format
+
+    @Credit to Everett Bull
     """
     miss_list = []
     ret_list = []
@@ -202,6 +204,8 @@ def format_check(f_name) :
     Return number of lines that are incorrectly formatted
 
     file:               list of lines in file
+
+    @Credit to Everett Bull
     """
 
     too_long = 0
