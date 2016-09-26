@@ -181,16 +181,32 @@ def deduct_points(points, total, passed, failed, halted):
     passed:     how many passed
     failed:     "   "   failed
     halted:     "   "   didn't finish
+
+    Return Value: number of points to take off
     """
+    deduction = 0
+
+    #All points lost if no tests pass
     if passed == 0:
         return points
 
-    deduction = (failed + halted) * 0.5
 
-    deduction = min(deduction, points)
+    #take off half a point for failing at least one test
+    if failed > 0:
+        deduction = 0.5
 
-    if deduction == points:
-        deduction -= 0.5
+    #if half or more than half of the tests are failed,take off another half a point
+    if (passed / float(total)) <= 0.5:
+        deduction += 0.5
+
+    #if only a quarter or less of the tests pass, take off another half a point
+    if (passed / (float(total)) <=0.25)
+        deduction += 0.5
+
+    #Can't take off more than the total number of points
+    #But since at least one test passed, have to get a minimum of 0.5 points for the problem.
+    deduction = min(deduction, points - 0.5)
+
 
     return deduction
 
@@ -204,6 +220,8 @@ def format_check(f_name) :
     Return number of lines that are incorrectly formatted
 
     file:               list of lines in file
+
+    Return Value: (#lines too long, #lines contain tab, #lines)
 
     @Credit to Everett Bull
     """
