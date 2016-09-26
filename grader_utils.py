@@ -49,7 +49,7 @@ def run_file(student, grading_pre, grading, timeout=TIMEOUT):
     """
 
     #Get the abs path of the pregrade sml file
-    pregrade = os.path.join(os.getcwd(), "grading_scripts", "pregrade.sml")
+    pregrade = os.path.join(os.getcwd(), "pregrade.sml")
     if os.path.isdir(grading):
         return
     #old command, does the same

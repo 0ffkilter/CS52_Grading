@@ -44,7 +44,7 @@ def grade_print(assign_num, folder_directory, s_with, s_next):
     for (name, f_name) in files:
        print_file(os.path.join(target_name, f_name), file_name)
 
-def grade_assign(assign_num, folder_directory, s_with, s_next):
+def grade_assign(assign_num, folder_directory, s_with, s_next, single_file = ""):
     """
     Grade an assignment
 
@@ -64,6 +64,34 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
     #Standardize file name of assignment submission
     file_name = assign_name + ".sml"
 
+    grading_list_file = open(os.path.join(os.getcwd(), "grading_scripts", assign_name, (assign_name + "_lst.txt")), 'rU')
+    grading_files = grading_list_file.read().split("\n")
+
+    grading_files = [os.path.join(os.getcwd(), "grading_scripts", assign_name, f) for f in grading_files]
+    grading_pre = grading_files[0]
+    grading_scripts = grading_files[1:]
+
+    if single_file != '':
+        print("Grading given file\n")
+        results = [run_file(os.path.join(os.getcwd(), single_file), grading_pre, f_script) for f_script in grading_scripts]
+        any_timeout = False
+        try:
+            for (r,t) in results:
+                res = parse_result(r)
+
+                if res ==  "ERR":
+                    print("Error reached")
+                    print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
+                else:
+                    print(res)
+                if (t):
+                    print("Test timed out\n")
+                    any_timeout = True
+        except:
+           pass
+
+        return
+
     #Target directory name
     target_name = assign_name + '-ready'
 
@@ -75,14 +103,6 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
         files = start_next(s_next, files, 1)
     elif s_with != "":
         files = start_early(s_with, files)
-
-    grading_list_file = open(os.path.join(os.getcwd(), "grading_scripts", assign_name, (assign_name + "_lst.txt")), 'rU')
-    grading_files = grading_list_file.read().split("\n")
-
-    grading_files = [os.path.join(os.getcwd(), "grading_scripts", assign_name, f) for f in grading_files]
-    grading_pre = grading_files[0]
-    grading_scripts = grading_files[1:]
-
     if len(miss_list) != 0:
         raw_input("Enter to continue")
 
@@ -197,6 +217,21 @@ def main():
             Start the assignment AFTER the one containing the string given.  Can be partial name
             """)
 
+    parser.add_argument('--timeout', action='store', dest='timeout', default=3, type=int, help=
+            """
+            timeout (in seconds) to wait before force terminating problem
+            """)
+
+    parser.add_argument('--traceback-length', action='store', dest='traceback_length', default=6, type=int, help=
+            """
+            how many lines of error to print
+            """)
+
+    parser.add_argument('--run-file', action='store', dest='file', default='', type=str, help=
+            """
+            Run one specific file.  Should be in the current directory
+            """
+            )
 
     res = parser.parse_args()
     print(res.start_with)
@@ -204,10 +239,13 @@ def main():
         print("assign number required with --assign")
         sys.exit(0)
 
+    TIMEOUT=res.timeout
+    TRACEBACK_LENGTH=res.traceback_length
+
     if (res.p):
         grade_print(res.assign_num, res.assign_dir, res.start_with, res.start_next)
     else:
-        grade_assign(res.assign_num, res.assign_dir, res.start_with, res.start_next)
+        grade_assign(res.assign_num, res.assign_dir, res.start_with, res.start_next, res.file)
 
 if __name__ == "__main__":
     main()
