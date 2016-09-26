@@ -67,9 +67,73 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, single_file = "")
     grading_list_file = open(os.path.join(os.getcwd(), "grading_scripts", assign_name, (assign_name + "_lst.txt")), 'rU')
     grading_files = grading_list_file.read().split("\n")
 
-    grading_files = [os.path.join(os.getcwd(), "grading_scripts", assign_name, f) for f in grading_files]
-    grading_pre = grading_files[0]
+    grading_files = [parse_pre_line(os.path.join(os.getcwd(), "grading_scripts", assign_name, f)) for f in grading_files]
+    grading_pre, style_points, total_points = grading_files[0]
     grading_scripts = grading_files[1:]
+
+
+    if single_file != '':
+        passed = 0
+        failed = 0
+        halt = 0
+        total_deduction = 0
+
+        (too_long, tabs, total) = format_check(single_file)
+        
+        for (f_script, points, tests) in grading_scripts:
+            (r, t) = run_file(os.path.join(os.getcwd(), single_file), grading_pre, f_script)
+
+            res = parse_result(r)
+
+            if res ==  "ERR":
+                print("Error reached")
+                print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
+            else:
+                print(res)
+            if (t):
+                print("Test timed out\n")
+                any_timeout = True
+
+            c_pass = res.count(" PASS")
+            c_fail = res.count(" FAIL")
+            c_halt = tests - c_pass - c_fail
+
+            passed += c_pass
+            failed += c_fail
+            halt += c_halt
+
+            c_deduction = deduct_points(points, tests, c_pass, c_fail, c_halt)
+
+            total_deduction += c_deduction
+
+            if c_deduction > 0:
+                print(c_deduction " points taken off")
+
+
+        print("====Summary====")
+        print("Pass:  " + str(passed))
+        print("Fail:  " + str(failed))
+        print("Halt:  " + str(halt))
+        print("Total: " + str(passed + failed + halt) + "\n")
+
+        style_deduction = 0
+        if too_long:
+            style_deduction += 0.5
+        if tabs:
+            style_deduction += 0.5
+
+        print("Style: " + str(style_points - style_deduction) + "/" + str(style_points) + "\n")
+
+        print("Total deduction: " + str(total_deduction) + "\n")
+
+        print("Suggested score: " + str(total - total_deduction - style_deduction) + "/" + str(total))
+
+
+
+
+
+
+
 
     if single_file != '':
         print("Grading given file\n")

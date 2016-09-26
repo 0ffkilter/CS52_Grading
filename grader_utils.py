@@ -147,6 +147,77 @@ def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
 
     return (miss_list,ret_list)
 
+def parse_pre_line(line):
+    """
+    Splits a line from the _lst.txt files
+
+    line:       line to split
+    """
+
+    opts = line.split(" ")
+    if len(opts) != 3
+        return ("", "", "")
+    name = opts[0]
+    
+    opt_a = opts[1]
+    #either style points or points for the problem
+    opt_b = opts[2]
+    #either total asgt points or number of tests
+
+    return (name, opt_a, opt_b)
+
+def deduct_points(points, total, passed, failed, halted):
+    """
+    returns a number of points to deduct based on the test results
+
+    0.5 points are deducted if at least one test fails.
+    all points are deducted if all tests fail.  
+    for each additional test failed, another half a point is deducted.  
+    all points cannot be deducted if at least one test is passed.
+
+    total:      total number of tests
+    passed:     how many passed
+    failed:     "   "   failed
+    halted:     "   "   didn't finish
+    """
+    if passed == 0:
+        return points
+
+    deduction = (failed + halted) * 0.5
+
+    deduction = min(deduction, points)
+
+    if deduction == points:
+        deduction -= 0.5
+
+    return deduction
+
+
+
+
+
+
+def format_check(f_name) :
+    """
+    Return number of lines that are incorrectly formatted
+    
+    file:               list of lines in file
+    """
+
+    too_long = 0
+    contains_tab = 0
+    linecount = 0
+    file = open(f_name, 'r')
+
+    for line in file :
+        linecount = linecount + 1
+        if 80 < len (line):
+           too_long += 1
+        if 0 <= line.find ("\t") :
+           contains_tab += 1
+
+    return (too_long, contains_tab)
+
 
 def parse_folder(folder_directory, assign_num):
     """
@@ -178,6 +249,13 @@ def read_tograde(a_dir):
     return f.read().splitlines();
 
 def parse_result(result, start_txt="--START--", end_txt="--END--"):
+    """
+    Parse and return sml output with regex
+
+    result:         string to parse
+    start_txt:      beginning of regex
+    end_txt:        end of regex
+    """
     pat = start_txt + "(.*)" + end_txt
     res = re.findall(pat, result, re.DOTALL)
     if len(res) == 0:
