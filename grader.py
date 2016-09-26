@@ -69,8 +69,6 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, single_file = "")
 
     grading_files = [parse_pre_line(os.path.join(os.getcwd(), "grading_scripts", assign_name, f)) for f in grading_files]
     grading_pre, style_points, total_points = grading_files[0]
-    print(grading_pre, style_points, total_points)
-    print(int(total_points))
     grading_scripts = grading_files[1:]
 
 
@@ -103,6 +101,9 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, single_file = "")
             passed += c_pass
             failed += c_fail
             halt += c_halt
+
+            points = float(points)
+            tests = int(tests)
 
             c_deduction = deduct_points(points, tests, c_pass, c_fail, c_halt)
 
