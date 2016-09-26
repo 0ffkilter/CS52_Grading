@@ -163,10 +163,10 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, single_file = "")
         halt = 0
         total_deduction = 0
 
-        (too_long, tabs, total) = format_check(f_name)
+        (too_long, tabs, total) = format_check(os.path.join(target_name, f_name))
 
         for (f_script, points, tests) in grading_scripts:
-            (r, t) = run_file(os.path.join(os.getcwd(), f_name), grading_pre, f_script)
+            (r, t) = run_file(os.path.join(target_name, f_name), grading_pre, f_script)
 
             res = parse_result(r)
 
