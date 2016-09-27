@@ -73,7 +73,7 @@ def grade_file(assign_num, f_name):
     halt = 0
     total_deduction = 0
 
-    (too_long, tabs, total) = format_check(f_name)
+    (too_long, tabs, comments, total) = format_check(f_name)
 
     deduct_list = []
 
@@ -116,26 +116,37 @@ def grade_file(assign_num, f_name):
         if c_deduction > 0:
             print(str(c_deduction) + " points taken off on previous problem\n\n")
 
-
-    print("\n\n====Summary====")
-    print("Pass:  " + str(passed))
-    print("Fail:  " + str(failed))
-    print("Halt:  " + str(halt))
-    print("Total: " + str(passed + failed + halt) + "\n")
-
     style_deduction = 0
     if too_long > 0:
         style_deduction += 0.5
     if tabs > 0:
         style_deduction += 0.5
+    if comments < len(grading_scripts) + 2:
+                style_deduction += 0.5
+    if comments < len(grading_scripts)/2 && style_deduction == 1.5:
+        style_deduction += 0.5    
+
+
+
+    print("\n\n====Summary====")
+    print("Pass:  " + str(passed))
+    print("Fail:  " + str(failed))
+    print("Halt:  " + str(halt))
+    print("Total: " + str(passed + failed + halt)
+
+    print("\n")
 
     print("# too long lines: " + str(too_long))
-    print("# lines w/ tabs: " + str(tabs) + "\n")
+    print("# lines w/ tabs: " + str(tabs))
+    print("# of comments: " + str(comments))
+
+    print("\n")
 
     print("Correctness Deductions:")
     for (n, d) in deduct_list:
         print(n + ": -" + str(d))
     print("\n")
+
 
 
     style_points = int(style_points)
@@ -193,140 +204,138 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
         raw_input("Enter to continue")
 
     for (name, f_name) in files:
+        while True:
 
-        #Print Name
-        if not silent_grade:
-            print("Name : " + name + "\n")
-        else:
-            print("=", end="")
-
-        # #Run the file through the script
-        passed = 0
-        failed = 0
-        halt = 0
-        total_deduction = 0
-        any_timeout=False
-        (too_long, tabs, total) = format_check(os.path.join(target_name, f_name))
-
-        deduct_list = []
-
-        num_pat = assign_name + "_(.*).sml"
-        for (f_script, points, tests) in grading_scripts:
-            (r, err) = run_file(os.path.join(target_name, f_name), grading_pre, f_script)
-
-            res = parse_result(r)
-
-            if res ==  "ERR":
-                if not silent_grade:
-                    print("Error reached")
-                    print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
+            #Print Name
+            if not silent_grade:
+                print("Name : " + name + "\n")
             else:
-                if not silent_grade:
-                    print(res)
+                print("=", end="")
 
-            c_pass = res.count(" PASS")
-            c_fail = res.count(" FAIL")
-            c_halt = int(tests) - c_pass - c_fail
+            # #Run the file through the script
+            passed = 0
+            failed = 0
+            halt = 0
+            total_deduction = 0
+            any_timeout=False
+            (too_long, tabs, comments, total) = format_check(os.path.join(target_name, f_name))
 
-            if (c_halt > 0):
-                if not silent_grade:
-                    print("Test timed out\n")
-                any_timeout = True
+            deduct_list = []
 
+            num_pat = assign_name + "_(.*).sml"
+            for (f_script, points, tests) in grading_scripts:
+                (r, err) = run_file(os.path.join(target_name, f_name), grading_pre, f_script, timeout=TIMEOUT)
 
-            passed += c_pass
-            failed += c_fail
-            halt += c_halt
+                res = parse_result(r)
 
-            points = float(points)
-            tests = int(tests)
-
-            c_deduction = deduct_points(points, tests, c_pass, c_fail, c_halt)
-            if (c_deduction > 0):
-                deduct_list.append((re.findall(num_pat, f_script)[0], c_deduction))
-
-            total_deduction += c_deduction
-
-            if c_deduction > 0 and not silent_grade:
-               print(str(c_deduction) + " points taken off on previous problem\n\n")
-
-
-        style_points = int(style_points)
-        total_points = int(total_points)
-
-        style_deduction = 0
-        if too_long > 0:
-            style_deduction += 0.5
-        if tabs > 0:
-            style_deduction += 0.5
-
-
-        if not silent_grade:
-            print("\n\n====Summary====")
-            print("Pass:  " + str(passed))
-            print("Fail:  " + str(failed))
-            print("Halt:  " + str(halt))
-            print("Total: " + str(passed + failed + halt) + "\n")
-
-
-            print("# too long lines: " + str(too_long))
-            print("# lines w/ tabs: " + str(tabs) + "\n")
-
-
-            print("Correctness Deductions:")
-            for (n, d) in deduct_list:
-                print(n + ": -" + str(d))
-            print("\n")
-
-            print("Style: " + str(style_points - style_deduction) + "/" + str(style_points))
-            print("Correctness: " + str(total_points - total_deduction - style_points) + "/" + str(total_points - style_points) + "\n")
-
-            print("\nSuggested score: " + str(total_points - total_deduction - style_deduction) + "/" + str(total_points))
-
-            # result, term = run_file(os.path.join(target_name, f_name), grading_path)
-
-            # print(result)
-            # if term:
-            #     print("Terminated early, timeout limit reached")
-
-
-            print(name + " finished\n")
-
-            grades.append((name, (total_points - total_deduction - style_deduction)))
-
-
-        if not no_confirm:
-            print(INPUT_STRING)
-            inp = raw_input("t: run with longer timeout (60 seconds)" if any_timeout else "")
-
-            """
-            c: continue (also just pressing enter works)
-            r: rerun file (assumed that it's been edited)
-            o: open file for editing in Nano
-            e: exit
-            t: run without timeout (potentially dangerous)
-            """
-            while inp != "c" and inp != "C" and inp != "":
-                if inp == "r" or inp == "R":
-                    result, term = run_file(os.path.join(target_name, f_name), grading_path)
-                    print(result)
-                    if term:
-                        print("Terminated early, timeout limit reached")
-                    print("Name : " + name + " finished\n")
-                    inp = raw_input(INPUT_STRING + "t: run with longer timeout (60 seconds)" if term else "")
-                elif inp == "t" or inp == "T":
-                    result, term = run_file(os.path.join(target_name, f_name), grading_path, 60)
-                    print(result)
-                    if term:
-                        print("Terminated early, timeout limit reached")
-                    print("Name : " + name + " finished\n")
-                    inp = raw_input(INPUT_STRING)
-
-                elif inp == "o" or inp == "O":
-                    open_file(os.path.join(assign_dir, dname, file_name))
-                    inp = raw_input(INPUT_STRING)
+                if res ==  "ERR":
+                    if not silent_grade:
+                        print("Error reached")
+                        print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
                 else:
-                    sys.exit(0)
+                    if not silent_grade:
+                        print(res)
+
+                c_pass = res.count(" PASS")
+                c_fail = res.count(" FAIL")
+                c_halt = int(tests) - c_pass - c_fail
+
+                if (c_halt > 0):
+                    if not silent_grade:
+                        print("Test timed out\n")
+                    any_timeout = True
+
+
+                passed += c_pass
+                failed += c_fail
+                halt += c_halt
+
+                points = float(points)
+                tests = int(tests)
+
+                c_deduction = deduct_points(points, tests, c_pass, c_fail, c_halt)
+                if (c_deduction > 0):
+                    deduct_list.append((re.findall(num_pat, f_script)[0], c_deduction))
+
+                total_deduction += c_deduction
+
+                if c_deduction > 0 and not silent_grade:
+                   print(str(c_deduction) + " points taken off on previous problem\n\n")
+
+
+            style_points = int(style_points)
+            total_points = int(total_points)
+
+            style_deduction = 0
+            if too_long > 0:
+                style_deduction += 0.5
+            if tabs > 0:
+                style_deduction += 0.5
+            if comments < len(grading_scripts) + 2:
+                style_deduction += 0.5
+            if comments < len(grading_scripts)/2 && style_deduction == 1.5:
+                style_deduction += 0.5
+
+
+            if not silent_grade:
+                print("\n\n====Summary====")
+                print("Pass:  " + str(passed))
+                print("Fail:  " + str(failed))
+                print("Halt:  " + str(halt))
+                print("Total: " + str(passed + failed + halt)
+
+                print("\n")
+
+                print("# too long lines: " + str(too_long))
+                print("# lines w/ tabs: " + str(tabs))
+                print("# of comments: " + str(comments))
+
+                print("\n")
+
+                print("Correctness Deductions:")
+                for (n, d) in deduct_list:
+                    print(n + ": -" + str(d))
+                print("\n")
+
+                print("Style: " + str(style_points - style_deduction) + "/" + str(style_points))
+                print("Correctness: " + str(total_points - total_deduction - style_points) + "/" + str(total_points - style_points) + "\n")
+
+                print("\nSuggested score: " + str(total_points - total_deduction - style_deduction) + "/" + str(total_points))
+
+                # result, term = run_file(os.path.join(target_name, f_name), grading_path)
+
+                # print(result)
+                # if term:
+                #     print("Terminated early, timeout limit reached")
+
+
+                print(name + " finished\n")
+
+                grades.append((name, (total_points - total_deduction - style_deduction)))
+
+
+            if not no_confirm:
+                print(INPUT_STRING)
+                inp = raw_input("t: run with longer timeout (60 seconds)" if any_timeout else "")
+
+                """
+                c: continue (also just pressing enter works)
+                r: rerun file (assumed that it's been edited)
+                o: open file for editing in Nano
+                e: exit
+                t: run without timeout (potentially dangerous)
+                """
+
+                if (inp.lower() == "t") or inp == "":
+                    TIMEOUT=3
+                    break;
+                elif inp.lower() == "t":
+                    TIMEOUT=30
+                elif inp.lower() == 'o':
+                    open_file(os.path.join(assign_dir, dname, file_name))
+                    break;
+
+
     if outfile != "":
         o_file = open(outfile, 'w');
 

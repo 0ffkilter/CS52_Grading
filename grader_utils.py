@@ -255,17 +255,20 @@ def format_check(f_name) :
 
     too_long = 0
     contains_tab = 0
+    comments = 0
     linecount = 0
+    
     file = open(f_name, 'r')
 
     for line in file :
         linecount = linecount + 1
+        comments += min(line.count("(*"), line.count("*)"))
         if 80 < len (line):
            too_long += 1
         if 0 <= line.find ("\t") :
            contains_tab += 1
 
-    return (too_long, contains_tab, linecount)
+    return (too_long, contains_tab, comments, linecount)
 
 
 def parse_folder(folder_directory, assign_num):
