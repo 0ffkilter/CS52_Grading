@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os, subprocess
 from threading import Timer
 from student_list import STUDENT_LIST
@@ -8,6 +9,7 @@ import threading
 import thread
 import multiprocessing
 import re
+import signal
 
 #input string for user input after running file
 INPUT_STRING = "c to continue, r to rerun, o to open file (in Nano), e to exit \n"
@@ -24,6 +26,7 @@ SUFFIX = '-latest'
 #how many lines to print when it errors
 TRACEBACK_LENGTH = 6
 
+#deprecated
 def run_sml(cmd, queue):
     """
     Run an sml command and pipe the output back into the queue
@@ -32,7 +35,9 @@ def run_sml(cmd, queue):
     queue:          the queue to send information back to
     """
 
-    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    pid = proc.pid
+    queue.put("PID:" + str(pid))
     while (proc.returncode == None):
         queue.put(proc.stdout.readline())
         proc.poll()
@@ -47,18 +52,33 @@ def run_file(student, grading_pre, grading, timeout=TIMEOUT):
 
     Return Value: (output, timeout) - timeout=True if process was terminated
     """
-
     #Get the abs path of the pregrade sml file
     pregrade = os.path.join(os.getcwd(), "pregrade.sml")
     if os.path.isdir(grading):
         return
     #old command, does the same
     #cmd = r'echo "use \"%s\"; use \"%s\"; use \"%s\";" | sml -Cprint.depth=100, -Cprint.length=1000' %(pregrade, student, grading)
-    cmd = r'cat %s %s %s %s | sml' %(pregrade, student, grading_pre, grading)
+    files = [pregrade, student, grading_pre, grading]
 
+    print("start concat")
+    with open(os.path.join(os.getcwd(), "tmp.sml"), 'w') as outfile:
+        for f_name in files:
+            with open(f_name) as infile:
+                for line in infile:
+                    outfile.write(line)
+    print("end concat")
+
+    cmd = ["timeout", str(timeout), "sml", "tmp.sml"]
+
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    out, err = proc.communicate()
+
+    return (out, False)
+
+"""
+    cmd = ["sml", "tmp.sml"]
     #set up multiprocessing queue for data retrieval
     queue = multiprocessing.Queue()
-
     #start separate process and timeout after certain number of seconds
     p = multiprocessing.Process(target=run_sml, args=(cmd, queue))
     p.start()
@@ -67,14 +87,23 @@ def run_file(student, grading_pre, grading, timeout=TIMEOUT):
     #kill process and return results depending on if the process timed out or not
     term = False
     if(p.is_alive()):
-        term = True;
+        term = True
         p.terminate()
         p.join()
     result = ""
     while not queue.empty():
-        result += queue.get()
+        cur=queue.get()
+        if "PID:" in cur:
+            pid = int(cur[4:])
+        else:
+            result += cur
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except:
+        pass
 
     return(result, term)
+"""
 
 def print_file(file_name, asgt_name):
     """
@@ -112,7 +141,7 @@ def anyCase(st) :
     return result
 
 def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
-    """ 
+    """
     Extracts files from submission download folder into new folder
 
     src_dir:        Source directory of asgtN_submissions
@@ -200,7 +229,7 @@ def deduct_points(points, total, passed, failed, halted):
         deduction += 0.5
 
     #if only a quarter or less of the tests pass, take off another half a point
-    if (passed / (float(total)) <=0.25)
+    if (passed / (float(total)) <=0.25):
         deduction += 0.5
 
     #Can't take off more than the total number of points

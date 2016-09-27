@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+from __future__ import print_function
 import sys
 import subprocess
 import os
@@ -103,7 +103,7 @@ def grade_file(assign_num, f_name):
         total_deduction += c_deduction
 
         if c_deduction > 0:
-            print(str(c_deduction) + " points taken off on previous problem")
+            print(str(c_deduction) + " points taken off on previous problem\n\n")
 
 
     print("\n\n====Summary====")
@@ -160,7 +160,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
     grading_files = [parse_pre_line(os.path.join(os.getcwd(), "grading_scripts", assign_name, f)) for f in grading_files]
     grading_pre, style_points, total_points = grading_files[0]
     grading_scripts = grading_files[1:]
-  
+
     #Target directory name
     target_name = assign_name + '-ready'
 
@@ -178,14 +178,17 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
     for (name, f_name) in files:
 
         #Print Name
-        print("Name : " + name + "\n")
+        if not silent_grade:
+            print("Name : " + name + "\n")
+        else:
+            print("=", end="")
 
         # #Run the file through the script
         passed = 0
         failed = 0
         halt = 0
         total_deduction = 0
-
+        any_timeout=False
         (too_long, tabs, total) = format_check(os.path.join(target_name, f_name))
 
         for (f_script, points, tests) in grading_scripts:
@@ -220,8 +223,8 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
 
             total_deduction += c_deduction
 
-            if c_deduction > 0:
-                print(str(c_deduction) + " points taken off on previous problem")
+            if c_deduction > 0 and not silent_grade:
+               print(str(c_deduction) + " points taken off on previous problem\n\n")
 
 
         style_points = int(style_points)
@@ -240,12 +243,12 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
             print("Halt:  " + str(halt))
             print("Total: " + str(passed + failed + halt) + "\n")
 
-     
+
             print("# too long lines: " + str(too_long))
             print("# lines w/ tabs: " + str(tabs) + "\n")
 
 
-            
+
 
             print("Style: " + str(style_points - style_deduction) + "/" + str(style_points) + "\n")
 
@@ -262,8 +265,8 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
 
             print(name + " finished\n")
 
-        grades.append[(name, int(total_points) - total_deduction - style_deduction)]
-   
+        grades.append((name, (int(total_points) - total_deduction - style_deduction)))
+
 
         if not no_confirm:
             print(INPUT_STRING)
@@ -303,7 +306,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
         g_sum = 0
         for (n, g) in grades:
             o_file.write("%s : %s\n" %(n, g))
-            sum += g
+            g_sum += g
 
         o_file.write("Avg: " + str(g_sum/len(grades)))
 
@@ -363,7 +366,7 @@ def main():
             Don't confirm, keep oging after grading
             """)
 
-    parser.add_argument('--outfile', action='store', dest='start_next', default='', type=str, help=
+    parser.add_argument('--outfile', action='store', dest='outfile', default='', type=str, help=
             """
             Where to output grades
             """)
@@ -403,8 +406,9 @@ def main():
     else:
         if (res.file != ""):
             grade_file(res.assign_num, res.file)
-        else
-            grade_assign(res.assign_num, res.assign_dir, res.start_with, res.start_next)
+        else:
+            grade_assign(res.assign_num, res.assign_dir, res.start_with,
+                    res.start_next, silent_grade=res.silent_grade, no_confirm=res.no_confirm, outfile=res.outfile)
 
 if __name__ == "__main__":
     main()
