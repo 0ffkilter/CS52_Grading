@@ -257,7 +257,7 @@ def format_check(f_name) :
     contains_tab = 0
     comments = 0
     linecount = 0
-    
+
     file = open(f_name, 'r')
 
     for line in file :

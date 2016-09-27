@@ -123,8 +123,8 @@ def grade_file(assign_num, f_name):
         style_deduction += 0.5
     if comments < len(grading_scripts) + 2:
                 style_deduction += 0.5
-    if comments < len(grading_scripts)/2 && style_deduction == 1.5:
-        style_deduction += 0.5    
+    if comments < len(grading_scripts)/2 and style_deduction == 1.5:
+        style_deduction += 0.5
 
 
 
@@ -132,7 +132,7 @@ def grade_file(assign_num, f_name):
     print("Pass:  " + str(passed))
     print("Fail:  " + str(failed))
     print("Halt:  " + str(halt))
-    print("Total: " + str(passed + failed + halt)
+    print("Total: " + str(passed + failed + halt))
 
     print("\n")
 
@@ -172,6 +172,8 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
 
     Return val: none
     """
+
+    timeout = 3
 
     grades = []
     assign_dir = parse_folder(folder_directory, assign_num)
@@ -224,7 +226,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
 
             num_pat = assign_name + "_(.*).sml"
             for (f_script, points, tests) in grading_scripts:
-                (r, err) = run_file(os.path.join(target_name, f_name), grading_pre, f_script, timeout=TIMEOUT)
+                (r, err) = run_file(os.path.join(target_name, f_name), grading_pre, f_script, timeout)
 
                 res = parse_result(r)
 
@@ -273,7 +275,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
                 style_deduction += 0.5
             if comments < len(grading_scripts) + 2:
                 style_deduction += 0.5
-            if comments < len(grading_scripts)/2 && style_deduction == 1.5:
+            if comments < len(grading_scripts)/2 and style_deduction == 1.5:
                 style_deduction += 0.5
 
 
@@ -282,7 +284,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
                 print("Pass:  " + str(passed))
                 print("Fail:  " + str(failed))
                 print("Halt:  " + str(halt))
-                print("Total: " + str(passed + failed + halt)
+                print("Total: " + str(passed + failed + halt))
 
                 print("\n")
 
@@ -327,14 +329,17 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
                 """
 
                 if (inp.lower() == "t") or inp == "":
-                    TIMEOUT=3
+                    timeout=3
                     break;
                 elif inp.lower() == "t":
-                    TIMEOUT=30
+                    timeout=30
                 elif inp.lower() == 'o':
                     open_file(os.path.join(assign_dir, dname, file_name))
                     break;
-
+                elif inp.lower() == 'e':
+                    sys.exit(0)
+                else:
+                    break;
 
     if outfile != "":
         o_file = open(outfile, 'w');
@@ -434,7 +439,7 @@ def main():
         print("assign number required with --assign")
         sys.exit(0)
 
-    TIMEOUT=res.timeout
+    timeout=res.timeout
     TRACEBACK_LENGTH=res.traceback_length
 
     if (res.p):
