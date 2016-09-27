@@ -60,20 +60,18 @@ def run_file(student, grading_pre, grading, timeout=TIMEOUT):
     #cmd = r'echo "use \"%s\"; use \"%s\"; use \"%s\";" | sml -Cprint.depth=100, -Cprint.length=1000' %(pregrade, student, grading)
     files = [pregrade, student, grading_pre, grading]
 
-    print("start concat")
     with open(os.path.join(os.getcwd(), "tmp.sml"), 'w') as outfile:
         for f_name in files:
             with open(f_name) as infile:
                 for line in infile:
                     outfile.write(line)
-    print("end concat")
 
     cmd = ["timeout", str(timeout), "sml", "tmp.sml"]
 
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     out, err = proc.communicate()
 
-    return (out, False)
+    return (out, err!= None)
 
 """
     cmd = ["sml", "tmp.sml"]

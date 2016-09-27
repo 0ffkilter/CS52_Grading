@@ -74,7 +74,7 @@ def grade_file(assign_num, f_name):
     (too_long, tabs, total) = format_check(f_name)
 
     for (f_script, points, tests) in grading_scripts:
-        (r, t) = run_file(os.path.join(f_name), grading_pre, f_script)
+        (r, err) = run_file(os.path.join(f_name), grading_pre, f_script)
 
         res = parse_result(r)
 
@@ -83,13 +83,15 @@ def grade_file(assign_num, f_name):
             print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
         else:
             print(res)
-        if (t):
-            print("Test timed out\n")
-            any_timeout = True
 
         c_pass = res.count(" PASS")
         c_fail = res.count(" FAIL")
         c_halt = int(tests) - c_pass - c_fail
+
+        if (c_halt > 0):
+            print("Test timed out\n")
+            any_timeout = True
+
 
         passed += c_pass
         failed += c_fail
@@ -192,7 +194,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
         (too_long, tabs, total) = format_check(os.path.join(target_name, f_name))
 
         for (f_script, points, tests) in grading_scripts:
-            (r, t) = run_file(os.path.join(target_name, f_name), grading_pre, f_script)
+            (r, err) = run_file(os.path.join(target_name, f_name), grading_pre, f_script)
 
             res = parse_result(r)
 
@@ -203,14 +205,16 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
             else:
                 if not silent_grade:
                     print(res)
-            if (t):
-                if not silent_grade:
-                    print("Test timed out\n")
-                any_timeout = True
 
             c_pass = res.count(" PASS")
             c_fail = res.count(" FAIL")
             c_halt = int(tests) - c_pass - c_fail
+
+            if (c_halt > 0):
+                if not silent_grade:
+                    print("Test timed out\n")
+                any_timeout = True
+
 
             passed += c_pass
             failed += c_fail
