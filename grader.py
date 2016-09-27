@@ -8,6 +8,8 @@ import argparse
 from argparse import RawTextHelpFormatter
 from grader_utils import *
 from student_list import STUDENT_LIST
+import re
+
 
 def grade_print(assign_num, folder_directory, s_with, s_next):
     """
@@ -73,6 +75,10 @@ def grade_file(assign_num, f_name):
 
     (too_long, tabs, total) = format_check(f_name)
 
+    deduct_list = []
+
+    num_pat = assign_name + "_(.*).sml"
+
     for (f_script, points, tests) in grading_scripts:
         (r, err) = run_file(os.path.join(f_name), grading_pre, f_script)
 
@@ -102,6 +108,9 @@ def grade_file(assign_num, f_name):
 
         c_deduction = deduct_points(points, tests, c_pass, c_fail, c_halt)
 
+        if (c_deduction > 0):
+            deduct_list.append((re.findall(num_pat, f_script)[0], c_deduction))
+
         total_deduction += c_deduction
 
         if c_deduction > 0:
@@ -123,14 +132,20 @@ def grade_file(assign_num, f_name):
     print("# too long lines: " + str(too_long))
     print("# lines w/ tabs: " + str(tabs) + "\n")
 
+    print("Correctness Deductions:")
+    for (n, d) in deduct_list:
+        print(n + ": -" + str(d))
+    print("\n")
+
 
     style_points = int(style_points)
+    total_points = int(total_points)
 
-    print("Style: " + str(style_points - style_deduction) + "/" + str(style_points) + "\n")
+    print("Style: " + str(style_points - style_deduction) + "/" + str(style_points))
+    print("Correctness: " + str(total_points - total_deduction - style_points) + "/" + str(total_points - style_points) + "\n")
 
-    print("Total deduction: " + str(total_deduction) + "\n")
 
-    print("Suggested score: " + str(int(total_points) - total_deduction - style_deduction) + "/" + str(total_points))
+    print("\nSuggested score: " + str(total_points - total_deduction - style_deduction) + "/" + str(total_points))
 
 
 
@@ -193,6 +208,9 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
         any_timeout=False
         (too_long, tabs, total) = format_check(os.path.join(target_name, f_name))
 
+        deduct_list = []
+
+        num_pat = assign_name + "_(.*).sml"
         for (f_script, points, tests) in grading_scripts:
             (r, err) = run_file(os.path.join(target_name, f_name), grading_pre, f_script)
 
@@ -224,6 +242,8 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
             tests = int(tests)
 
             c_deduction = deduct_points(points, tests, c_pass, c_fail, c_halt)
+            if (c_deduction > 0):
+                deduct_list.append((re.findall(num_pat, f_script)[0], c_deduction))
 
             total_deduction += c_deduction
 
@@ -232,6 +252,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
 
 
         style_points = int(style_points)
+        total_points = int(total_points)
 
         style_deduction = 0
         if too_long > 0:
@@ -252,13 +273,15 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
             print("# lines w/ tabs: " + str(tabs) + "\n")
 
 
+            print("Correctness Deductions:")
+            for (n, d) in deduct_list:
+                print(n + ": -" + str(d))
+            print("\n")
 
+            print("Style: " + str(style_points - style_deduction) + "/" + str(style_points))
+            print("Correctness: " + str(total_points - total_deduction - style_points) + "/" + str(total_points - style_points) + "\n")
 
-            print("Style: " + str(style_points - style_deduction) + "/" + str(style_points) + "\n")
-
-            print("Total deduction: " + str(total_deduction) + "\n")
-
-            print("Suggested score: " + str(int(total_points) - total_deduction - style_deduction) + "/" + str(total_points))
+            print("\nSuggested score: " + str(total_points - total_deduction - style_deduction) + "/" + str(total_points))
 
             # result, term = run_file(os.path.join(target_name, f_name), grading_path)
 
@@ -269,7 +292,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
 
             print(name + " finished\n")
 
-        grades.append((name, (int(total_points) - total_deduction - style_deduction)))
+            grades.append((name, (total_points - total_deduction - style_deduction)))
 
 
         if not no_confirm:
