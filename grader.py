@@ -133,7 +133,7 @@ def grade_file(assign_num, f_name):
 
 
 
-def grade_assign(assign_num, folder_directory, s_with, s_next):
+def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=False, no_confirm=False, outfile=""):
     """
     Grade an assignment
 
@@ -145,6 +145,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
     Return val: none
     """
 
+    grades = []
     assign_dir = parse_folder(folder_directory, assign_num)
 
     assign_name = "asgt" + "0" if assign_num < 10 else ""
@@ -193,12 +194,15 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
             res = parse_result(r)
 
             if res ==  "ERR":
-                print("Error reached")
-                print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
+                if not silent_grade:
+                    print("Error reached")
+                    print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
             else:
-                print(res)
+                if not silent_grade:
+                    print(res)
             if (t):
-                print("Test timed out\n")
+                if not silent_grade:
+                    print("Test timed out\n")
                 any_timeout = True
 
             c_pass = res.count(" PASS")
@@ -220,11 +224,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
                 print(str(c_deduction) + " points taken off on previous problem")
 
 
-        print("\n\n====Summary====")
-        print("Pass:  " + str(passed))
-        print("Fail:  " + str(failed))
-        print("Halt:  " + str(halt))
-        print("Total: " + str(passed + failed + halt) + "\n")
+        style_points = int(style_points)
 
         style_deduction = 0
         if too_long > 0:
@@ -232,58 +232,84 @@ def grade_assign(assign_num, folder_directory, s_with, s_next):
         if tabs > 0:
             style_deduction += 0.5
 
-        print("# too long lines: " + str(too_long))
-        print("# lines w/ tabs: " + str(tabs) + "\n")
+
+        if not silent_grade:
+            print("\n\n====Summary====")
+            print("Pass:  " + str(passed))
+            print("Fail:  " + str(failed))
+            print("Halt:  " + str(halt))
+            print("Total: " + str(passed + failed + halt) + "\n")
+
+     
+            print("# too long lines: " + str(too_long))
+            print("# lines w/ tabs: " + str(tabs) + "\n")
 
 
-        style_points = int(style_points)
+            
 
-        print("Style: " + str(style_points - style_deduction) + "/" + str(style_points) + "\n")
+            print("Style: " + str(style_points - style_deduction) + "/" + str(style_points) + "\n")
 
-        print("Total deduction: " + str(total_deduction) + "\n")
+            print("Total deduction: " + str(total_deduction) + "\n")
 
-        print("Suggested score: " + str(int(total_points) - total_deduction - style_deduction) + "/" + str(total_points))
+            print("Suggested score: " + str(int(total_points) - total_deduction - style_deduction) + "/" + str(total_points))
 
-        # result, term = run_file(os.path.join(target_name, f_name), grading_path)
+            # result, term = run_file(os.path.join(target_name, f_name), grading_path)
 
-        # print(result)
-        # if term:
-        #     print("Terminated early, timeout limit reached")
+            # print(result)
+            # if term:
+            #     print("Terminated early, timeout limit reached")
 
 
-        print(name + " finished\n")
-        #Get options after running file
-        print(INPUT_STRING)
-        inp = raw_input("t: run with longer timeout (60 seconds)" if any_timeout else "")
+            print(name + " finished\n")
 
-        """
-        c: continue (also just pressing enter works)
-        r: rerun file (assumed that it's been edited)
-        o: open file for editing in Nano
-        e: exit
-        t: run without timeout (potentially dangerous)
-        """
-        while inp != "c" and inp != "C" and inp != "":
-            if inp == "r" or inp == "R":
-                result, term = run_file(os.path.join(target_name, f_name), grading_path)
-                print(result)
-                if term:
-                    print("Terminated early, timeout limit reached")
-                print("Name : " + name + " finished\n")
-                inp = raw_input(INPUT_STRING + "t: run with longer timeout (60 seconds)" if term else "")
-            elif inp == "t" or inp == "T":
-                result, term = run_file(os.path.join(target_name, f_name), grading_path, 60)
-                print(result)
-                if term:
-                    print("Terminated early, timeout limit reached")
-                print("Name : " + name + " finished\n")
-                inp = raw_input(INPUT_STRING)
+        grades.append[(name, int(total_points) - total_deduction - style_deduction)]
+   
 
-            elif inp == "o" or inp == "O":
-                open_file(os.path.join(assign_dir, dname, file_name))
-                inp = raw_input(INPUT_STRING)
-            else:
-                sys.exit(0)
+        if not no_confirm:
+            print(INPUT_STRING)
+            inp = raw_input("t: run with longer timeout (60 seconds)" if any_timeout else "")
+
+            """
+            c: continue (also just pressing enter works)
+            r: rerun file (assumed that it's been edited)
+            o: open file for editing in Nano
+            e: exit
+            t: run without timeout (potentially dangerous)
+            """
+            while inp != "c" and inp != "C" and inp != "":
+                if inp == "r" or inp == "R":
+                    result, term = run_file(os.path.join(target_name, f_name), grading_path)
+                    print(result)
+                    if term:
+                        print("Terminated early, timeout limit reached")
+                    print("Name : " + name + " finished\n")
+                    inp = raw_input(INPUT_STRING + "t: run with longer timeout (60 seconds)" if term else "")
+                elif inp == "t" or inp == "T":
+                    result, term = run_file(os.path.join(target_name, f_name), grading_path, 60)
+                    print(result)
+                    if term:
+                        print("Terminated early, timeout limit reached")
+                    print("Name : " + name + " finished\n")
+                    inp = raw_input(INPUT_STRING)
+
+                elif inp == "o" or inp == "O":
+                    open_file(os.path.join(assign_dir, dname, file_name))
+                    inp = raw_input(INPUT_STRING)
+                else:
+                    sys.exit(0)
+    if outfile != "":
+        o_file = open(outfile, 'w');
+
+        g_sum = 0
+        for (n, g) in grades:
+            o_file.write("%s : %s\n" %(n, g))
+            sum += g
+
+        o_file.write("Avg: " + str(g_sum/len(grades)))
+
+
+
+
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
@@ -325,6 +351,21 @@ def main():
     parser.add_argument('-p', action='store_true', help =
             """
             Print flag.  Overrides other actions
+            """)
+
+    parser.add_argument('-silent-grade', action='store_true', help =
+            """
+            Don't print anything
+            """)
+
+    parser.add_argument('-no-confirm', action='store_true', help =
+            """
+            Don't confirm, keep oging after grading
+            """)
+
+    parser.add_argument('--outfile', action='store', dest='start_next', default='', type=str, help=
+            """
+            Where to output grades
             """)
 
     parser.add_argument('--start-next', action='store', dest='start_next', default='', type=str, help=
