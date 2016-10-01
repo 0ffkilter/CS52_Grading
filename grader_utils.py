@@ -238,9 +238,8 @@ def deduct_points(points, total, passed, failed, halted):
     return deduction
 
 
-
-
-
+def roundPartial (value, resolution):
+    return round (value / resolution) * resolution
 
 def format_check(f_name) :
     """
@@ -264,7 +263,7 @@ def format_check(f_name) :
         linecount = linecount + 1
         comments += min(line.count("(*"), line.count("*)"))
         if 80 < len (line):
-           too_long += 1
+           too_long += len(line) - 80
         if 0 <= line.find ("\t") :
            contains_tab += 1
 
