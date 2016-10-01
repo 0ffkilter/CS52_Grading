@@ -47,7 +47,7 @@ def grade_print(assign_num, folder_directory, s_with, s_next):
        print_file(os.path.join(target_name, f_name), file_name)
 
 
-def grade(f_name, grading_files, num_pat, silent=False, round=0.25):
+def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
 
     grading_pre, style_points, total_points = grading_files[0]
     grading_scripts = grading_files[1:]
@@ -57,14 +57,12 @@ def grade(f_name, grading_files, num_pat, silent=False, round=0.25):
 
     passed = 0
     failed = 0
-    halt = 0
+    halted = 0
     total_deduction = 0
 
     (too_long, tabs, comments, total) = format_check(f_name)
 
     deduct_list = []
-
-
 
     for (f_script, points, tests) in grading_scripts:
         (r, err) = run_file(os.path.join(f_name), grading_pre, f_script)
@@ -91,7 +89,7 @@ def grade(f_name, grading_files, num_pat, silent=False, round=0.25):
 
         passed += c_pass
         failed += c_fail
-        halt += c_halt
+        halted += c_halt
 
         points = float(points)
         tests = int(tests)
@@ -132,8 +130,8 @@ def grade(f_name, grading_files, num_pat, silent=False, round=0.25):
     ret_dictionary["style_multiplier"] = style_multiplier
     ret_dictionary["correct_deduction"] = total_deduction
     ret_dictionary["deduct_list"] = deduct_list
-    ret_dictionary["suggested_score"] = round_to((ret_dictionary["total_points"] - ret_dictionary["style_deduction"] -
-        ret_dictionary["correct_deduction"]) * ret_dictionary["style_multiplier"], (1/round_to))
+    ret_dictionary["suggested_score"] = roundPartial((ret_dictionary["total_points"] - ret_dictionary["style_deduction"] -
+        ret_dictionary["correct_deduction"]) * ret_dictionary["style_multiplier"], round_to)
 
     return ret_dictionary
 
@@ -155,9 +153,11 @@ def print_results(results):
     print("# Tabs:       " + str(results["num_tabs"]))
     print("# Comments:   " + str(results["num_comments"]))
 
+    print("")
+
     print("Correctness Deductions:")
     print("Num | Deduction")
-    for (n, g) in results["grading_deductions"]:
+    for (n, g) in results["deduct_list"]:
         print(n.ljust(4) + "|" + str(g).rjust(4))
 
     print("")
@@ -174,7 +174,7 @@ def print_results(results):
 
     print("")
 
-    print("Suggested Score:    " + str(results["sugggested_score"]))
+    print("Suggested Score:    " + str(results["suggested_score"]))
 
 
 
@@ -204,10 +204,6 @@ def grade_file(assign_num, f_name, round_to=0.5):
     result = grade(f_name, grading_files, num_pat)
     print_results(result)
 
-
-
-
-
 def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=False, no_confirm=False, outfile="", round_to=0.5):
     """
     Grade an assignment
@@ -228,6 +224,8 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
     assign_name = "asgt" + "0" if assign_num < 10 else ""
     assign_name += str(assign_num)
 
+
+    num_pat = assign_name + "_(.*).sml"
     #Standardize file name of assignment submission
     file_name = assign_name + ".sml"
 
@@ -262,17 +260,17 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
                 print("=", end="")
 
             # #Run the file through the script
-            result = grade(f_name, grading_files, num_pat, silent_grade)
+            result = grade(os.path.join(target_name, f_name), grading_files, num_pat, silent_grade)
 
             if not silent_grade:
                 print_results(result)
 
-            grades.append((name, (total_points - total_deduction - style_deduction)))
+            grades.append((name, result["suggested_score"]))
 
 
             if not no_confirm:
                 print(INPUT_STRING)
-                inp = raw_input("t: run with longer timeout (60 seconds)" if any_timeout else "")
+                inp = raw_input("t: run with longer timeout (60 seconds)" if result["tests_halted"] > 0 else "")
 
                 """
                 c: continue (also just pressing enter works)
@@ -284,16 +282,20 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
 
                 if (inp.lower() == "t") or inp == "":
                     timeout=3
-                    break;
+                    break
                 elif inp.lower() == "t":
-                    timeout=30
+                    timeout=60
                 elif inp.lower() == 'o':
                     open_file(os.path.join(assign_dir, dname, file_name))
-                    break;
+                    break
                 elif inp.lower() == 'e':
                     sys.exit(0)
+                elif inp.lower() == 'r':
+                    pass
                 else:
-                    break;
+                    break
+            else:
+                break
     if outfile != "":
         o_file = open(outfile, 'w');
 
