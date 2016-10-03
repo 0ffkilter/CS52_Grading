@@ -1,7 +1,7 @@
 from __future__ import print_function
 import os, subprocess
 from threading import Timer
-from student_list import STUDENT_LIST
+from grading_scripts import student_list
 import shutil
 import glob
 import sys
@@ -138,7 +138,7 @@ def anyCase(st) :
             result = result + c
     return result
 
-def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=STUDENT_LIST):
+def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=student_list.STUDENT_LIST):
     """
     Extracts files from submission download folder into new folder
 

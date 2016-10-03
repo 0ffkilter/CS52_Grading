@@ -7,7 +7,7 @@ import os.path as path
 import argparse
 from argparse import RawTextHelpFormatter
 from grader_utils import *
-from student_list import STUDENT_LIST
+from grading_scripts import student_list
 import re
 
 
@@ -401,7 +401,7 @@ def main():
 
     timeout=res.timeout
     TRACEBACK_LENGTH=res.traceback_length
-
+    STUDENT_LIST = student_list
     if (res.p):
         grade_print(res.assign_num, res.assign_dir, res.start_with, res.start_next, round_to = res.round_to)
     else:
