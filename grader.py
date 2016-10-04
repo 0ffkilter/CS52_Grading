@@ -403,7 +403,7 @@ def main():
     TRACEBACK_LENGTH=res.traceback_length
     STUDENT_LIST = student_list
     if (res.p):
-        grade_print(res.assign_num, res.assign_dir, res.start_with, res.start_next, round_to = res.round_to)
+        grade_print(res.assign_num, res.assign_dir, res.start_with, res.start_next)
     else:
         if (res.file != ""):
             grade_file(res.assign_num, res.file)
