@@ -360,9 +360,10 @@ def start_early(start_with, lst):
     idx = 0
     for i in range(len(lst)):
         if lst[i][0].startswith(start_with):
+            idx = i
             break
-    if not i == len(lst) - 1:
-        return lst[i:]
+    if not idx == len(lst) - 1:
+        return lst[idx:]
 
     return lst
 
