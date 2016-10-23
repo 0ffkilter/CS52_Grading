@@ -65,29 +65,32 @@ for (name, email) in student_list.STUDENT_LIST:
             print(f_name + " grade")
             for (test, points, args, answer) in g:
                 str_args = " ".join(args)
-                tmp_file = open("tmp.txt", "w")
+                tmp_file = open("tmp.txt", "w+")
                 tmp_file.write("\n".join(args))
                 tmp_file.close()
                 sys.stdin.flush()
-                cmd = ["timeout",
-                       "2",
-                       "java",
-                       "-jar",
-                       "cs52-machine.jar",
-                       "-p",
-                       os.path.join('asgt04-ready', name, f_name),
-                       "-u",
-                       "tmp.txt"]
-                proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                out, err = proc.communicate()
-
-                o = out[out.find(">"):]
+                finished = False
+                for i in range(20):
+                    cmd = ["timeout",
+                           "2",
+                           "java",
+                           "-jar",
+                           "cs52-machine.jar",
+                           "-p",
+                           os.path.join('asgt04-ready', name, f_name),
+                           "-u",
+                           "tmp.txt"]
+                    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                    out, err = proc.communicate()
+                    if "stdin" not in out:
+                        break
+                o = out[out.find(answer_string):]
                 if o.find(answer) > -1:
                     pts = pts + int(points)
                     num_correct = num_correct + 1
                     test_results.append((test, 1, answer, answer))
                 else:
-                    test_results.append((test, 0, o, answer))
+                    test_results.append((test, 0, out, answer))
         else:
             print(f_name + " not submitted")
             for (test, p, a, a2) in g:
@@ -107,13 +110,13 @@ for (name, email) in student_list.STUDENT_LIST:
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         out, err = proc.communicate()
 
-        o = out[out.find(">"):]
+        o = out[out.find(answer_string):]
         if o.find("-47") > -1:
             pts = pts + 1
             num_correct = num_correct + 1
             test_results.append((test, 1, "-47", "-47"))
         else:
-            test_results.append((test, 0, o, "-47"))
+            test_results.append((test, 0, out, "-47"))
     else:
         test_results.append((test, -1, "", "1000"))
         print("asgt04-4a.txt not submitted")
@@ -131,14 +134,14 @@ for (name, email) in student_list.STUDENT_LIST:
                fourb]
         proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         out, err = proc.communicate()
-        o = out[out.find(">"):]
+        o = out[out.find(answer_string):]
 
         if o.find("1000") > -1:
             pts = pts + 1
             num_correct = num_correct + 1
             test_results.append((test, 1, "1000", "1000"))
         else:
-            test_results.append((test, 0, o, "1000"))
+            test_results.append((test, 0, out, "1000"))
 
     else:
         test_results.append((test, -1, "", "1000"))
