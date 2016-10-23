@@ -1,7 +1,6 @@
 import glob
 import os
 from grading_scripts import student_list
-from grader_utils import anyCase
 import sys
 from datetime import datetime
 import shutil
@@ -28,6 +27,25 @@ file_list = ['dblabs.a52',
              'asgt04-4a.txt',
              'asgt04-4b.txt']
 
+def anyCase(st) :
+    """ Written by Everett Bull
+    Return a globbing string, capitalization does not matter
+
+    st:     string to glob
+
+    Return Value: globbed String
+    """
+
+    result = ""
+    for c in st :
+        if c.isalpha() :
+            result = result + '[' + c.lower() + c.upper() + ']'
+        else :
+            result = result + c
+    return result
+
+
+
 #Create target dir if it doesn't exist
 if not os.path.exists(tgt_dir):
     os.makedirs(tgt_dir)
@@ -46,9 +64,15 @@ for (name, userid) in sdt_list :
                 print(time)
                 for (dirpath, dirnames, filenames) in os.walk(directory):
                     for f in filenames:
+                        if "zip" in f:
+                            try:
+                                shutil.unpack_archive(f)
+                            except:
+                                pass
+                for (dirpath, dirnames, filenames) in os.walk(directory):
+                    for f in filenames:
                         print(f)
                         if f in file_list:
-                            print(f)
                             if (f, time, dirpath) not in files:
                                 files.append((f, time, dirpath))
                             else:
