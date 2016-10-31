@@ -169,9 +169,11 @@ def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=student_list.STUDE
             sys.stdout.write("Multiple matches: " + name  + ", " + userid + "\n")
         else :
             sourcePath = possibleFiles[0]
-            destinationPath = tgt_dir + "/" + name + "-" + f_name
+            destinationPath = tgt_dir + "/" + name + "/" + name + "-" + f_name
             ret_list.append((name, (name + '-' + f_name)))
             if not created:
+                if not os.path.exists(tgt_dir + "/" + name):
+                    os.makedirs(os.path.join(tgt_dir, name))
                 shutil.copy (sourcePath, destinationPath)
 
     return (miss_list,ret_list)

@@ -64,26 +64,24 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
 
     deduct_list = []
 
+    ret_string = ""
+
     for (f_script, points, tests) in grading_scripts:
         (r, err) = run_file(os.path.join(f_name), grading_pre, f_script)
 
         res = parse_result(r)
 
         if res ==  "ERR":
-            if not silent:
-                print("Error reached")
-                print("Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:]))
-        else:
-            if not silent:
-                print(res)
+            ret_string = ret_string + "Error reached\n"
+            ret_string = ret_string + "Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:])
+        ret_string = ret_string + res + "\n"
 
         c_pass = res.count(" PASS")
         c_fail = res.count(" FAIL")
         c_halt = int(tests) - c_pass - c_fail
 
         if (c_halt > 0):
-            if not silent:
-                print("Test timed out\n")
+            ret_string = ret_string + "Test timed out\n\n"
             any_timeout = True
 
 
@@ -102,8 +100,7 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
         total_deduction += c_deduction
 
         if c_deduction > 0:
-            if not silent:
-                print(str(c_deduction) + " points taken off on previous problem\n\n")
+            ret_string = ret_string + str(c_deduction) + " points taken off on previous problem\n\n"
 
     style_deduction = 0
     style_multiplier = 1.0
@@ -117,6 +114,8 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
     if comments < len(grading_scripts)/2 and style_deduction == 1.5:
         style_deduction += 0.5
 
+    ret_string = "\n".join([i for i in ret_string.split("\n") if not "tmp.sml" in i])
+    ret_dictionary["ret_string"] = ret_string
     ret_dictionary["tests_passed"] = passed
     ret_dictionary["tests_failed"] = failed
     ret_dictionary["tests_halted"] = halted
@@ -131,51 +130,62 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
     ret_dictionary["correct_deduction"] = total_deduction
     ret_dictionary["deduct_list"] = deduct_list
     ret_dictionary["suggested_score"] = roundPartial((ret_dictionary["total_points"] - ret_dictionary["style_deduction"] -
-        ret_dictionary["correct_deduction"]) * ret_dictionary["style_multiplier"], round_to)
+    ret_dictionary["correct_deduction"]) * ret_dictionary["style_multiplier"], round_to)
 
     return ret_dictionary
 
-def print_results(results):
-    print("====Summary====\n")
+def print_results(results, silent=False):
+    print_string = ""
+    print_string = print_string + (results["ret_string"])
 
-    print("")
+    print_string = print_string + ("====Summary====\n")
 
-    print("Tests:")
-    print("Passed: " + str(results["tests_passed"]))
-    print("Failed: " + str(results["tests_failed"]))
-    print("Halted: " + str(results["tests_halted"]))
-    print("Total:  " + str(results["tests_total"]))
+    print_string = print_string + ("")
 
-    print("")
+    print_string = print_string + "\n" + ("Tests:")
+    print_string = print_string + "\n" + ("Passed: " + str(results["tests_passed"]))
+    print_string = print_string + "\n" + ("Failed: " + str(results["tests_failed"]))
+    print_string = print_string + "\n" + ("Halted: " + str(results["tests_halted"]))
+    print_string = print_string + "\n" + ("Total:  " + str(results["tests_total"]))
 
-    print("Style:")
-    print("# Characters: " + str(results["num_long"]))
-    print("# Tabs:       " + str(results["num_tabs"]))
-    print("# Comments:   " + str(results["num_comments"]))
+    print_string = print_string + "\n" + ("")
 
-    print("")
+    print_string = print_string + "\n" + ("Style:")
+    print_string = print_string + "\n" + ("# Characters: " + str(results["num_long"]))
+    print_string = print_string + "\n" + ("# Tabs:       " + str(results["num_tabs"]))
+    print_string = print_string + "\n" + ("# Comments:   " + str(results["num_comments"]))
 
-    print("Correctness Deductions:")
-    print("Num | Deduction")
+    print_string = print_string + "\n" + ("")
+
+    print_string = print_string + "\n" + ("Correctness Deductions:")
+    print_string = print_string + "\n" + ("Num | Deduction")
     for (n, g) in results["deduct_list"]:
-        print(n.ljust(4) + "|" + str(g).rjust(4))
+        print_string = print_string + "\n" + (n.ljust(4) + "|" + str(g).rjust(4))
 
-    print("")
+    print_string = print_string + "\n" + ("")
 
     style_points = results["style_points"] - results["style_deduction"]
     correct_points = results["total_points"] - results["style_points"] - results["correct_deduction"]
     correct_points_total = results["total_points"] - results["style_points"]
 
-    print("Totals:")
-    print("Style Points:       " + str(style_points) + "/" + str(results["style_points"]))
-    print("Correctness Points: " + str(correct_points) + "/" + str(correct_points_total))
+    print_string = print_string + "\n" + ("Totals:")
+    print_string = print_string + "\n" + ("Style Points:       " + str(style_points) + "/" + str(results["style_points"]))
+    print_string = print_string + "\n" + ("Correctness Points: " + str(correct_points) + "/" + str(correct_points_total))
     if results["style_multiplier"] != 1:
-        print("Style Multiplier:   " + str(results["style_multiplier"]))
+        print_string = print_string + "\n" + ("Style Multiplier:   " + str(results["style_multiplier"]))
 
-    print("")
+    print_string = print_string + ("")
 
-    print("Suggested Score:    " + str(results["suggested_score"]))
+    if not silent:
+        print(print_string)
+        print("Suggested Score:    " + str(results["suggested_score"]))
 
+
+    print_string = print_string + ("\n\n\n====Grader Comments====")
+    print_string = print_string + ("\n\n\n\n\n\n\n\n\n\n")
+    print_string = print_string + ("Final Score:  /" + str(results["total_points"]))
+
+    return print_string
 
 
 
@@ -202,7 +212,8 @@ def grade_file(assign_num, f_name, round_to=0.5):
     grading_files = [parse_pre_line(os.path.join(os.getcwd(), "grading_scripts", assign_name, f)) for f in grading_files]
 
     result = grade(f_name, grading_files, num_pat)
-    print_results(result)
+    to_file = print_results(result)
+
 
 def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=False, no_confirm=False, outfile="", round_to=0.5):
     """
@@ -260,13 +271,16 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
                 print("=", end="")
 
             # #Run the file through the script
-            result = grade(os.path.join(target_name, f_name), grading_files, num_pat, silent_grade)
+            result = grade(os.path.join(target_name,name, f_name), grading_files, num_pat, silent_grade)
 
-            if not silent_grade:
-                print_results(result)
+            result_str = print_results(result, silent_grade)
 
             grades.append((name, result["suggested_score"]))
 
+            grade_name = os.path.join(target_name, name, "grades.txt")
+
+            with open(grade_name, "w+") as graded_file:
+                graded_file.write(result_str)
 
             if not no_confirm:
                 print(INPUT_STRING)
