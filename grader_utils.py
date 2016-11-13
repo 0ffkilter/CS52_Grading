@@ -26,6 +26,12 @@ SUFFIX = '-latest'
 #how many lines to print when it errors
 TRACEBACK_LENGTH = 6
 
+ASSIGN6_TOKENS = [
+                "readln()",
+                "(compile expression);",
+                "OS.Process.success"
+                 ]
+
 #deprecated
 def run_sml(cmd, queue):
     """
@@ -58,20 +64,51 @@ def run_file(student, grading_pre, grading, timeout=TIMEOUT):
         return
     #old command, does the same
     #cmd = r'echo "use \"%s\"; use \"%s\"; use \"%s\";" | sml -Cprint.depth=100, -Cprint.length=1000' %(pregrade, student, grading)
-    files = [pregrade, student, grading_pre, grading]
+    if not ".52" in grading:
+        files = [pregrade, student, grading_pre, grading]
+        with open(os.path.join(os.getcwd(), "tmp.sml"), 'w') as outfile:
+            for f_name in files:
+                with open(f_name) as infile:
+                    for line in infile:
+                        write = True
+                        for token in ASSIGN6_TOKENS:
+                            if token in line:
+                                write = False
+                        if write:
+                            outfile.write(line)
 
-    with open(os.path.join(os.getcwd(), "tmp.sml"), 'w') as outfile:
-        for f_name in files:
-            with open(f_name) as infile:
-                for line in infile:
-                    outfile.write(line)
+        cmd = ["timeout", str(timeout), "sml", "tmp.sml"]
 
-    cmd = ["timeout", str(timeout), "sml", "tmp.sml"]
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        out, err = proc.communicate()
 
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    out, err = proc.communicate()
+        return (out, err!= None)
+    else:
+        command = ""
+        answer = ""
+        with open(grading) as infile:
+            lines = infile.readlines()
+            command = lines[0][:-1]
+            answer = lines[1]
+        cmd = "echo \"%s\" | sml %s | java -jar cs52-machine.jar -p -f" %(command, student)
 
-    return (out, err!= None)
+        print(cmd)
+        try:
+            out = subprocess.check_output(cmd, shell=True)
+        except subprocess.CalledProcessError:
+            return ("---START---\nCode check: FAIL\nCompiler Error\n\n--END--", False)
+        print(out)
+
+        if answer in out:
+            return ("---START---\nCode check: PASS\n--END--", False)
+        else:
+            ans_string = ""
+            if "says > " in out:
+                ans_string = out[out.find(">")+1:]
+            else:
+                ans_string = out
+            return ("---START---\nCode check: FAIL\nExpected Value: %s\nActual Value:%s\n--END--" %(answer, ans_string), False)
+
 
 """
     cmd = ["sml", "tmp.sml"]
@@ -187,7 +224,8 @@ def parse_pre_line(line):
 
     opts = line.split(" ")
     if len(opts) != 3:
-        return ("", "", "")
+        print("FLAGGED: " + line)
+        return None
     name = opts[0]
 
     opt_a = opts[1]

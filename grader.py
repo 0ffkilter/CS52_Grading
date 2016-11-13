@@ -52,7 +52,6 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
     grading_pre, style_points, total_points = grading_files[0]
     grading_scripts = grading_files[1:]
 
-
     ret_dictionary = {}
 
     passed = 0
@@ -65,8 +64,8 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
     deduct_list = []
 
     ret_string = ""
-
     for (f_script, points, tests) in grading_scripts:
+        print("running file: %s" %(f_script))
         (r, err) = run_file(os.path.join(f_name), grading_pre, f_script)
 
         res = parse_result(r)
@@ -95,7 +94,10 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
         c_deduction = deduct_points(points, tests, c_pass, c_fail, c_halt)
 
         if (c_deduction > 0):
-            deduct_list.append((re.findall(num_pat, f_script)[0], c_deduction))
+            try:
+                deduct_list.append((re.findall(num_pat, f_script)[0], c_deduction))
+            except:
+                deduct_list.append((re.findall("asgt06_(.*).52", f_script)[0], c_deduction))
 
         total_deduction += c_deduction
 
@@ -113,6 +115,7 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
         style_deduction += 0.5
     if comments < len(grading_scripts)/2 and style_deduction == 1.5:
         style_deduction += 0.5
+
 
     ret_string = "\n".join([i for i in ret_string.split("\n") if not "tmp.sml" in i])
     ret_dictionary["ret_string"] = ret_string
@@ -243,7 +246,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
     grading_list_file = open(os.path.join(os.getcwd(), "grading_scripts", assign_name, (assign_name + "_lst.txt")), 'rU')
     grading_files = grading_list_file.read().split("\n")
 
-    grading_files = [parse_pre_line(os.path.join(os.getcwd(), "grading_scripts", assign_name, f)) for f in grading_files]
+    grading_files = [parse_pre_line(os.path.join(os.getcwd(), "grading_scripts", assign_name, f)) for f in grading_files if f is not ""]
     grading_pre, style_points, total_points = grading_files[0]
     grading_scripts = grading_files[1:]
 
