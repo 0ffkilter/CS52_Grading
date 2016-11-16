@@ -59,9 +59,19 @@ fun test2_not problem num total str function arg1 arg2 retval =
   else
     print(problem ^ num ^ "/" ^ total ^ " : FAIL\n" ^ str ^ "\n");
 
-
 fun test3 problem num total str function arg1 arg2 arg3 retval = 
   if (function arg1 arg2 arg3 = retval)
     then print(problem ^ num ^ "/" ^ total ^ " : PASS\n")
   else
     print(problem ^ num ^ "/" ^ total ^ " : FAIL\n" ^ str ^ "\n");
+
+fun test4 problem num total str function arg1 arg2 arg3 retval = 
+  if (function arg1 arg2 arg3 = retval)
+    then print(problem ^ num ^ "/" ^ total ^ " : PASS\n")
+  else
+    print(problem ^ num ^ "/" ^ total ^ " : FAIL\n" ^ str ^ "\n");
+
+
+(*
+* New string printing functions
+*)

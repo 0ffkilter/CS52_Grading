@@ -1,4 +1,5 @@
 from __future__ import print_function
+from datetime import datetime
 import os, subprocess
 from threading import Timer
 from grading_scripts import student_list
@@ -175,7 +176,7 @@ def anyCase(st) :
             result = result + c
     return result
 
-def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=student_list.STUDENT_LIST):
+def extract_files(src_dir, dir_sfx, file_list, tgt_dir, sdt_list=student_list.STUDENT_LIST):
     """
     Extracts files from submission download folder into new folder
 
@@ -196,23 +197,47 @@ def extract_files(src_dir, dir_sfx, f_name, tgt_dir, sdt_list=student_list.STUDE
     if not os.path.exists(tgt_dir):
         os.makedirs(tgt_dir)
         created = False
-
     for (name, userid) in sdt_list :
-        possibleFiles = glob.glob(src_dir + "/" + anyCase(userid) + dir_sfx + "/" + f_name)
+        possibleFiles = glob.glob(src_dir + "/*" + anyCase(userid) + "*")
         if len (possibleFiles) == 0 :
             sys.stdout.write("Missing: " + name  + ", " + userid + "\n")
-            miss_list.append(name + '-' + f_name)
-        elif 1 < len (possibleFiles) :
-            sys.stdout.write("Multiple matches: " + name  + ", " + userid + "\n")
-        else :
-            sourcePath = possibleFiles[0]
-            destinationPath = tgt_dir + "/" + name + "/" + name + "-" + f_name
-            ret_list.append((name, (name + '-' + f_name)))
-            if not created:
-                if not os.path.exists(tgt_dir + "/" + name):
-                    os.makedirs(os.path.join(tgt_dir, name))
-                shutil.copy (sourcePath, destinationPath)
-
+            miss_list.append(name)
+        else:
+            files = []
+            for directory in possibleFiles:
+                if "Z-" in directory:
+                    time = datetime.strptime(directory, src_dir + "/%Y-%m-%dT%H+%M+%S+%f" + directory[directory.find("Z"):])
+                    for (dirpath, dirnames, filenames) in os.walk(directory):
+                        for f in filenames:
+                            if "zip" in f:
+                                try:
+                                    shutil.unpack_archive(f)
+                                except:
+                                    pass
+                    for (dirpath, dirnames, filenames) in os.walk(directory):
+                        for f in filenames:
+                            if f in file_list:
+                                if (f, time, dirpath) not in files:
+                                    files.append((f, time, dirpath))
+                                else:
+                                    append = False
+                                    for (a_file, t, d) in files:
+                                        if a_file == f:
+                                            if t < time:
+                                                files.remove((a_file, t, d))
+                                                append = True
+                                    if append:
+                                        files.append((f, time, dirpath))
+            for (f, t, d) in files:
+                from_dir = os.path.join(d, f)
+                to_dir = os.path.join(tgt_dir, name)
+                if (name, (name + '-' + f)) not in ret_list:
+                    if ".sml" in f or ".a52" in f:
+                        ret_list.append((name, (name + '-' + f)))
+                if not os.path.exists(os.path.join(to_dir, name + "-" + f)):
+                    if not os.path.exists(to_dir):
+                        os.makedirs(os.path.join(to_dir))
+                    shutil.copy (from_dir, os.path.join(to_dir, name + "-" + f))
     return (miss_list,ret_list)
 
 def parse_pre_line(line):
@@ -301,7 +326,7 @@ def format_check(f_name) :
 
     for line in file :
         linecount = linecount + 1
-        comments += min(line.count("(*"), line.count("*)"))
+        comments += min(line.count("(*")+ line.count("*)"), 1)
         if 80 < len (line):
            too_long += len(line) - 80
         if 0 <= line.find ("\t") :
@@ -347,7 +372,7 @@ def parse_result(result, start_txt="--START--", end_txt="--END--"):
     start_txt:      beginning of regex
     end_txt:        end of regex
     """
-    pat = start_txt + "(.*)" + end_txt
+    pat = "(.*)" + start_txt + "(.*)" + end_txt
     res = re.findall(pat, result, re.DOTALL)
     if len(res) == 0:
         res = re.findall(start_txt + "(.*)", result, re.DOTALL)

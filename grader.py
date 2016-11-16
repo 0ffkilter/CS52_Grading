@@ -9,7 +9,7 @@ from argparse import RawTextHelpFormatter
 from grader_utils import *
 from grading_scripts import student_list
 import re
-
+from datetime import datetime
 
 def grade_print(assign_num, folder_directory, s_with, s_next):
     """
@@ -68,15 +68,18 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
         print("running file: %s" %(f_script))
         (r, err) = run_file(os.path.join(f_name), grading_pre, f_script)
 
-        res = parse_result(r)
+#        if res ==  "ERR":
+#            ret_string = ret_string + "Error reached\n"
+#            ret_string = ret_string + "Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:])
+        idx = r.find("--START--")
+        res = r[r.find("--START--")+9:r.find("--END-")]
+        if idx != -1:
+            ret_string = ret_string + res + "\n"
+        else:
+            ret_string = ret_string + "error before test"
 
-        if res ==  "ERR":
-            ret_string = ret_string + "Error reached\n"
-            ret_string = ret_string + "Traceback: \n" + "\n".join(r.splitlines()[-TRACEBACK_LENGTH:])
-        ret_string = ret_string + res + "\n"
-
-        c_pass = res.count(" PASS")
-        c_fail = res.count(" FAIL")
+        c_pass = r.count(" PASS")
+        c_fail = r.count(" FAIL")
         c_halt = int(tests) - c_pass - c_fail
 
         if (c_halt > 0):
@@ -254,7 +257,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
     target_name = assign_name + '-ready'
 
     #get list of student files
-    miss_list, files = extract_files(assign_dir, SUFFIX, file_name, target_name)
+    miss_list, files = extract_files(assign_dir, SUFFIX, [file_name], target_name)
 
     #Trim list of files if starting not at the beginning
     if s_next != "":
