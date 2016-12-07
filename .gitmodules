@@ -1,3 +1,6 @@
 [submodule "grading_scripts"]
 	path = grading_scripts
 	url = https://github.com/0ffkilter/grading_scripts
+[submodule "CS52_StarterFiles"]
+	path = CS52_StarterFiles
+	url = https://github.com/0ffkilter/CS52_StarterFiles
