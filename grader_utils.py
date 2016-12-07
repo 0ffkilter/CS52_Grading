@@ -15,8 +15,6 @@ import signal
 #input string for user input after running file
 INPUT_STRING = "c to continue, r to rerun, o to open file (in Nano), e to exit \n"
 
-#timeout (in secs) to run each command for before force quitting
-TIMEOUT = 3
 
 #where to print to
 PRINTER_NAME = 'Edmunds_229'
@@ -49,7 +47,7 @@ def run_sml(cmd, queue):
         queue.put(proc.stdout.readline())
         proc.poll()
 
-def run_file(student, grading_pre, grading, timeout=TIMEOUT):
+def run_file(student_dir, student, grading_pre, grading, timeout):
     """
     Run a file through the grading script
     Runs shell command 'cat pregrade.sml asgtN.sml grading_script.sml | sml'
@@ -77,12 +75,19 @@ def run_file(student, grading_pre, grading, timeout=TIMEOUT):
                                 write = False
                         if write:
                             outfile.write(line)
-
+        print('MOVING')
+        to_dir = os.path.join("asgt08-ready", student_dir, "asgt08_run.sml")
+        print(to_dir)
+        shutil.move(os.path.join(os.getcwd(), "tmp.sml"), os.path.join("asgt08-ready", student_dir, "asgt08_run.sml"))
+        shutil.copy(os.path.join(os.getcwd(), "grading_scripts/asgt08/strategy.sml"), os.path.join("asgt08-ready", student_dir))
+        """
         cmd = ["timeout", str(timeout), "sml", "tmp.sml"]
 
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        out, err = proc.communicate()
-
+        out, err = proc.communicate(=)
+        """
+        out = ""
+        err = ""
         return (out, err!= None)
     else:
         command = ""
@@ -304,7 +309,11 @@ def deduct_points(points, total, passed, failed, halted):
 
 
 def roundPartial (value, resolution):
-    return round (value / resolution) * resolution
+    try:
+        val = round (value / resolution) * resolution
+    except:
+        val = value
+    return val
 
 def format_check(f_name) :
     """

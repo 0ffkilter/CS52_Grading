@@ -11,6 +11,9 @@ from grading_scripts import student_list
 import re
 from datetime import datetime
 
+DEFAULT_TIMEOUT = 3
+TIMEOUT = DEFAULT_TIMEOUT
+
 def grade_print(assign_num, folder_directory, s_with, s_next):
     """
     Print an assignment
@@ -47,8 +50,8 @@ def grade_print(assign_num, folder_directory, s_with, s_next):
        print_file(os.path.join(target_name, f_name), file_name)
 
 
-def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
-
+def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25, f_dir=os.getcwd()):
+    global TIMEOUT, DEFAULT_TIMEOUT
     grading_pre, style_points, total_points = grading_files[0]
     grading_scripts = grading_files[1:]
 
@@ -66,7 +69,7 @@ def grade(f_name, grading_files, num_pat, silent=False, round_to=0.25):
     ret_string = ""
     for (f_script, points, tests) in grading_scripts:
         print("running file: %s" %(f_script))
-        (r, err) = run_file(os.path.join(f_name), grading_pre, f_script)
+        (r, err) = run_file(f_dir, f_name, grading_pre, f_script, timeout=TIMEOUT)
 
 #        if res ==  "ERR":
 #            ret_string = ret_string + "Error reached\n"
@@ -228,12 +231,10 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
     assign_num:         number of assignment (integer)
     folder_directory:   directory that assignment FOLDER is located in (where the submission folder is)
     s_with:         partial or complete username to start grading at
-    s_next:         partial or complete username to start grading after
 
     Return val: none
     """
-
-    timeout = 3
+    global TIMEOUT,DEFAULT_TIMEOUT
 
     grades = []
     assign_dir = parse_folder(folder_directory, assign_num)
@@ -277,7 +278,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
                 print("=", end="")
 
             # #Run the file through the script
-            result = grade(os.path.join(target_name,name, f_name), grading_files, num_pat, silent_grade)
+            result = grade(os.path.join(target_name,name, f_name), grading_files, num_pat, silent_grade, f_dir=os.path.join(os.getcwd(),target_name, name))
 
             result_str = print_results(result, silent_grade)
 
@@ -301,10 +302,10 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
                 """
 
                 if (inp.lower() == "t") or inp == "":
-                    timeout=3
+                    TIMEOUT=DEFAULT_TIMEOUT
                     break
                 elif inp.lower() == "t":
-                    timeout=60
+                    TIMEOUT=60
                 elif inp.lower() == 'o':
                     open_file(os.path.join(assign_dir, dname, file_name))
                     break
@@ -331,6 +332,7 @@ def grade_assign(assign_num, folder_directory, s_with, s_next, silent_grade=Fals
 
 
 def main():
+    global TIMEOUT, DEFAULT_TIMEOUT
     parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
 
     parser.add_argument('--assign-dir', action='store', dest='assign_dir', default=os.getcwd(), type=str, help=
@@ -419,7 +421,8 @@ def main():
         print("assign number required with --assign")
         sys.exit(0)
 
-    timeout=res.timeout
+    DEFAULT_TIMEOUT=res.timeout
+    TIMEOUT=DEFAULT_TIMEOUT
     TRACEBACK_LENGTH=res.traceback_length
     STUDENT_LIST = student_list
     if (res.p):
