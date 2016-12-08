@@ -69,7 +69,7 @@ for (name, userid) in sdt_list :
                 print(time)
                 for (dirpath, dirnames, filenames) in os.walk(directory):
                     for f in filenames:
-                        if "zip" in f:
+                        if ".zip" in f:
                             try:
                                 shutil.unpack_archive(f)
                             except:
