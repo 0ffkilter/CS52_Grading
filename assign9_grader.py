@@ -29,16 +29,21 @@ command = ["java",
 
 tests = []
 for g in grading_files:
-    with open(os.path.join("grading_scripts/asgt09", g), "r") as f:
-        lines = f.read().split("\n")
-        first_line = lines[0].split(" ")
-        to_grade = first_line[0]
-        points=first_line[1]
-        f_tests = []
-        for l in lines[1:]:
-            l_temp = l.split(" ")
-            f_tests.append((l_temp[0], l_temp[1]))
-        tests.append((to_grade, points, f_tests))
+    if g is not '':
+        with open(os.path.join("grading_scripts/asgt09", g), "r") as f:
+            lines = f.read().split("\n")
+            first_line = lines[0].split(" ")
+            to_grade = first_line[0]
+            points=first_line[1]
+            f_tests = []
+            for l in lines[1:]:
+                l_temp = l.split(" ")
+                print(l_temp)
+                try:
+                    f_tests.append((l_temp[0], l_temp[1]))
+                except:
+                    pass
+            tests.append((to_grade, int(points), f_tests))
 
 student_results = []
 
@@ -46,34 +51,41 @@ for (name, email) in student_list.STUDENT_LIST:
     result = "Test Summary:\n\n"
     total_points = 0
     print(name)
-    for (cur_file, cur_points, cur_tests) in tests:
-        result = result + cur_file + " tests:\n"
-        run_file = os.path.join(assign_directory, name, cur_file)
-        total_points = total_points + cur_points
-        cur_deduction = 0
-        if os.path.exists(run_file):
-            for (test_input, expected) in cur_tests:
-                try:
-                    proc = subprocess.Popen(command + [run_file, test_input] , stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-                    out, err = proc.communicate()
-                    if out.find(expected) != -1:
-                        result = result + "\t" + test_input + " : PASS\n".rjust("20")
-                    else:
-                        result = result + "\t" + test_input + " : FAIL\n".rjust("20")
-                        result = result + "\t\tExpected: " + expected + "\n"
-                        cur_deduction = cur_deduction + 0.5
-                except:
-                    print("error on %s" %(run_file))
 
-            if cur_deduction < cur_points:
-                total_points = total_points + cur_points - total_deduction
 
-    result = result + "\n\n"
-    result = result + "Correctness points: %i/17" %(total_points)
 
-    result = result + "\n\n#5 Points  /3\n\nTotal Points:  /20\n\nGrader Comments:"
+    if os.path.exists(os.path.join(assign_directory, name)):
+        for (cur_file, cur_points, cur_tests) in tests:
+            print("\t%s" %(cur_file))
+            result = result + cur_file + " tests:\n"
+            run_file = os.path.join(assign_directory, name, cur_file)
+            total_points = total_points + cur_points
+            cur_deduction = 0
+            if os.path.exists(run_file):
+                for (test_input, expected) in cur_tests:
+                    try:
+                        cmd = command + [run_file, test_input]
+                        out = subprocess.check_output(cmd)
+                        if out.find(expected) != -1:
+                            result = result + "\t|" + test_input.ljust(16) + " : PASS\n"
+                        else:
+                            result = result + "\t|" + test_input.ljust(16) +  " : FAIL\n"
+                            result = result + "\t\tExpected: " + expected + "\n"
+                            cur_deduction = cur_deduction + 0.5
+                    except Exception as e:
+                        print("error on %s" %(run_file))
+                        print(e)
 
-    with open(os.path.join(assign_directory, name, "grades.txt"), 'w+') as f_grades:
-        f_grades.write(result)
+                if cur_deduction < cur_points:
+                    total_points = total_points + cur_points - cur_deduction
+                cur_deduction = 0
+
+        result = result + "\n\n"
+        result = result + "Correctness points: %i/11" %(total_points)
+
+        result = result + "\n\n#5 Points  /3\n#7 Points  /3\n#8 Points  /3\n\nTotal Points:  /20\n\nGrader Comments:"
+
+        with open(os.path.join(assign_directory, name, "grades.txt"), 'w+') as f_grades:
+            f_grades.write(result)
 
 
