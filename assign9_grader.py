@@ -7,8 +7,8 @@ import os
 import os.path as path
 import argparse
 from argparse import RawTextHelpFormatter
-from grader_utils import *
 from grading_scripts import student_list
+import jflap_tester.test
 import re
 import time
 import csv
@@ -30,61 +30,45 @@ command = ["java",
 tests = []
 for g in grading_files:
     if g is not '':
-        with open(os.path.join("grading_scripts/asgt09", g), "r") as f:
-            lines = f.read().split("\n")
-            first_line = lines[0].split(" ")
-            to_grade = first_line[0]
-            points=first_line[1]
-            f_tests = []
-            for l in lines[1:]:
-                l_temp = l.split(" ")
-                print(l_temp)
-                try:
-                    f_tests.append((l_temp[0], l_temp[1]))
-                except:
-                    pass
-            tests.append((to_grade, int(points), f_tests))
-
-student_results = []
+        words = g.split(" ")
+        #file, isTuring, numTests, points
+        tests.append((words[0], words[2], words[3], int(words[1])))
 
 for (name, email) in student_list.STUDENT_LIST:
     result = "Test Summary:\n\n"
     total_points = 0
     print(name)
 
-
-
     if os.path.exists(os.path.join(assign_directory, name)):
-        for (cur_file, cur_points, cur_tests) in tests:
+        for (cur_file, isTuring, num_tests, cur_points) in tests:
             print("\t%s" %(cur_file))
-            result = result + cur_file + " tests:\n"
-            run_file = os.path.join(assign_directory, name, cur_file)
-            total_points = total_points + cur_points
-            cur_deduction = 0
-            if os.path.exists(run_file):
-                for (test_input, expected) in cur_tests:
-                    try:
-                        cmd = command + [run_file, test_input]
-                        out = subprocess.check_output(cmd)
-                        if out.find(expected) != -1:
-                            result = result + "\t|" + test_input.ljust(16) + " : PASS\n"
-                        else:
-                            result = result + "\t|" + test_input.ljust(16) +  " : FAIL\n"
-                            result = result + "\t\tExpected: " + expected + "\n"
-                            cur_deduction = cur_deduction + 0.5
-                    except Exception as e:
-                        print("error on %s" %(run_file))
-                        print(e)
+            result = result + "\n" + cur_file + "\n"
+            result = result + ("=" * 22) + "\n"
+            num_failed = 0
+            test_results = []
+            try:
+                test_results = jflap_tester.test.runTests(os.path.join(assign_directory, name, (cur_file+".jff").replace("_", "-")),
+                                            os.path.join(script_directory, cur_file+".txt"), True if isTuring == "1" else False)
+            except RecursionError:
+                result = result + "\t Turing Machine Failed to Halt - cannot proceed\n"
+                print("recursion error")
+            except:
+                print("foo")
+            else:
+                for (test_input, did_pass, expected) in test_results:
+                    if did_pass:
+                        result = result + (test_input).ljust(16) + ": pass\n"
+                    else:
+                        result = result + (test_input).ljust(16) + ": fail\n"
+                        result = result + "\tExpected: " + ("Accept\n" if expected else "False\n")
+                        num_failed = num_failed + 1
+                total_points = total_points + max(0, cur_points - (num_failed * 0.5))
+            result = result + ("=" * 22) + "\n"
 
-                if cur_deduction < cur_points:
-                    total_points = total_points + cur_points - cur_deduction
-                cur_deduction = 0
+        result = result + "\nCorrectness points: %i/17" %(total_points)
 
-        result = result + "\n\n"
-        result = result + "Correctness points: %i/11" %(total_points)
-
-        result = result + "\n\n#5 Points  /3\n#7 Points  /3\n#8 Points  /3\n\nTotal Points:  /20\n\nGrader Comments:"
-
+        result = result + "\n\n#5 Points  /3\n\nTotal Points:  /20\n\nGrader Comments:"
+        print(result)
         with open(os.path.join(assign_directory, name, "grades.txt"), 'w+') as f_grades:
             f_grades.write(result)
 

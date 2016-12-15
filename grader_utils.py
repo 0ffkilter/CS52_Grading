@@ -75,6 +75,7 @@ def run_file(student_dir, student, grading_pre, grading, timeout):
                                 write = False
                         if write:
                             outfile.write(line)
+        """
         print('MOVING')
         to_dir = os.path.join("asgt08-ready", student_dir, "asgt08_run.sml")
         print(to_dir)
@@ -84,8 +85,7 @@ def run_file(student_dir, student, grading_pre, grading, timeout):
         cmd = ["timeout", str(timeout), "sml", "tmp.sml"]
 
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        out, err = proc.communicate(=)
-        """
+        out, err = proc.communicate()
         out = ""
         err = ""
         return (out, err!= None)
@@ -220,15 +220,24 @@ def extract_files(src_dir, dir_sfx, file_list, tgt_dir, sdt_list=student_list.ST
                                 except:
                                     pass
                     for (dirpath, dirnames, filenames) in os.walk(directory):
+                        print(dirpath, dirnames, filenames)
+                        print("==")
                         for f in filenames:
                             if f in file_list:
-                                if (f, time, dirpath) not in files:
+                                is_in = False
+                                student_id = dirpath.split("-")[-1]
+                                for (f, time, dirpath) in files:
+                                    if student_id in dirpath:
+                                        is_in = True
+                                if not is_in:
                                     files.append((f, time, dirpath))
                                 else:
                                     append = False
                                     for (a_file, t, d) in files:
-                                        if a_file == f:
+                                        print('foo')
+                                        if a_file.split("/")[-1] == f.split("/")[-1]:
                                             if t < time:
+                                                print (a_file, f)
                                                 files.remove((a_file, t, d))
                                                 append = True
                                     if append:
