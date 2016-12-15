@@ -4,3 +4,6 @@
 [submodule "CS52_StarterFiles"]
 	path = CS52_StarterFiles
 	url = https://github.com/0ffkilter/CS52_StarterFiles
+[submodule "jflap-tester"]
+	path = jflap-tester
+	url = https://github.com/0ffkilter/jflap-tester
