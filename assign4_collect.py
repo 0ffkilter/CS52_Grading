@@ -67,8 +67,6 @@ for (name, userid) in sdt_list :
                         if "zip" in f:
                             try:
                                 shutil.unpack_archive(f)
-                            except:
-                                pass
                 for (dirpath, dirnames, filenames) in os.walk(directory):
                     for f in filenames:
                         print(f)

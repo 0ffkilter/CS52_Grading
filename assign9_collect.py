@@ -68,14 +68,10 @@ for (name, userid) in sdt_list :
                 time = datetime.strptime(directory, src_dir + "/%Y-%m-%dT%H+%M+%S+%f" + directory[directory.find("Z"):])
                 print(time)
                 for (dirpath, dirnames, filenames) in os.walk(directory):
+                    print(dirpath.split("-")[-1])
                     for f in filenames:
-                        if ".zip" in f:
-                            try:
-                                shutil.unpack_archive(f)
-                            except:
-                                pass
-                for (dirpath, dirnames, filenames) in os.walk(directory):
-                    for f in filenames:
+                        if "zip" in f:
+                            print("Zip file at %s/%s" %(dirpath, f))
                         print(f)
                         if f in file_list:
                             if (f, time, dirpath) not in files:
